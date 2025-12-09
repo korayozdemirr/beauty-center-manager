@@ -32,7 +32,7 @@ function App() {
       <div className="min-h-screen bg-gradient-to-br from-rose-50 to-purple-50 flex items-center justify-center">
         <div className="animate-pulse text-rose-500">
           <div className="w-12 h-12 border-4 border-rose-300 border-t-rose-500 rounded-full animate-spin mx-auto"></div>
-          <p className="mt-4 font-medium">Loading...</p>
+          <p className="mt-4 font-medium">Yükleniyor...</p>
         </div>
       </div>
     );
@@ -104,7 +104,7 @@ function App() {
                   : 'text-rose-600 hover:bg-rose-50'
               }`}
             >
-              Dashboard
+              Panel
             </button>
             <button 
               onClick={() => {setCurrentPage('customers'); setIsMobileMenuOpen(false); setSelectedCustomer(null);}}
@@ -114,7 +114,7 @@ function App() {
                   : 'text-rose-600 hover:bg-rose-50'
               }`}
             >
-              Customers
+              Müşteriler
             </button>
             <button 
               onClick={() => {setCurrentPage('appointmentsList'); setIsMobileMenuOpen(false); setSelectedCustomer(null);}}
@@ -124,13 +124,13 @@ function App() {
                   : 'text-rose-600 hover:bg-rose-50'
               }`}
             >
-              All Appointments
+              Tüm Randevular
             </button>
             <button 
               onClick={handleLogout}
               className="px-4 py-2 rounded-lg text-sm font-medium text-rose-600 hover:bg-rose-50 transition-all duration-200"
             >
-              Logout
+              Çıkış
             </button>
           </nav>
         </div>
@@ -146,7 +146,7 @@ function App() {
                     : 'text-rose-600'
                 }`}
               >
-                Dashboard
+                Panel
               </button>
               <button 
                 onClick={() => {setCurrentPage('customers'); setIsMobileMenuOpen(false); setSelectedCustomer(null);}}
@@ -156,7 +156,7 @@ function App() {
                     : 'text-rose-600'
                 }`}
               >
-                Customers
+                Müşteriler
               </button>
               <button 
                 onClick={() => {setCurrentPage('appointmentsList'); setIsMobileMenuOpen(false); setSelectedCustomer(null);}}
@@ -166,13 +166,13 @@ function App() {
                     : 'text-rose-600'
                 }`}
               >
-                All Appointments
+                Tüm Randevular
               </button>
               <button 
                 onClick={handleLogout}
                 className="px-4 py-2 rounded-lg text-left font-medium text-rose-600"
               >
-                Logout
+                Çıkış
               </button>
             </div>
           </div>
@@ -197,7 +197,7 @@ const Login = ({ setCurrentPage }) => {
       await signInWithEmailAndPassword(auth, email, password);
       setCurrentPage('dashboard');
     } catch (error) {
-      setError('Invalid email or password');
+      setError('Geçersiz e-posta veya şifre');
     }
   };
 
@@ -211,8 +211,8 @@ const Login = ({ setCurrentPage }) => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
             </svg>
           </div>
-          <h2 className="text-2xl font-bold text-gray-800">Welcome Back</h2>
-          <p className="text-gray-600 mt-2">Sign in to your account</p>
+          <h2 className="text-2xl font-bold text-gray-800">Tekrar Hoş Geldiniz</h2>
+          <p className="text-gray-600 mt-2">Hesabınıza giriş yapın</p>
         </div>
         
         {error && <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm">{error}</div>}
@@ -220,7 +220,7 @@ const Login = ({ setCurrentPage }) => {
         <form onSubmit={handleLogin}>
           <div className="mb-5">
             <label className="block text-gray-700 text-sm font-medium mb-2" htmlFor="email">
-              Email Address
+              E-posta Adresi
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -234,7 +234,7 @@ const Login = ({ setCurrentPage }) => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-300 focus:border-rose-400 outline-none transition"
-                placeholder="you@example.com"
+                placeholder="siz@ornek.com"
                 required
               />
             </div>
@@ -242,7 +242,7 @@ const Login = ({ setCurrentPage }) => {
           
           <div className="mb-6">
             <label className="block text-gray-700 text-sm font-medium mb-2" htmlFor="password">
-              Password
+              Şifre
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -266,7 +266,7 @@ const Login = ({ setCurrentPage }) => {
             type="submit"
             className="w-full bg-gradient-to-r from-rose-500 to-purple-600 hover:from-rose-600 hover:to-purple-700 text-white font-medium py-3 px-4 rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
           >
-            Sign In
+            Giriş Yap
           </button>
         </form>
       </div>
@@ -305,7 +305,7 @@ const Dashboard = ({ setCurrentPage, currentUser }) => {
         const customer = customers.find(c => c.id === appointment.customerId);
         return {
           ...appointment,
-          customerName: customer ? customer.name : 'Unknown Customer',
+          customerName: customer ? customer.name : 'Bilinmeyen Müşteri',
           customerPhone: customer ? customer.phone : ''
         };
       });
@@ -375,15 +375,15 @@ const Dashboard = ({ setCurrentPage, currentUser }) => {
     <div>
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">Dashboard</h1>
-          <p className="text-gray-600 mt-1">Welcome back, {currentUser.email}</p>
+          <h1 className="text-2xl font-bold text-gray-800">Panel</h1>
+          <p className="text-gray-600 mt-1">Tekrar hoş geldiniz, {currentUser.email}</p>
         </div>
         <div className="mt-4 sm:mt-0">
           <button 
             onClick={() => setCurrentPage('customers')}
             className="bg-gradient-to-r from-rose-500 to-purple-600 hover:from-rose-600 hover:to-purple-700 text-white font-medium py-2 px-4 rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
           >
-            Add New Customer
+            Yeni Müşteri Ekle
           </button>
         </div>
       </div>
@@ -397,7 +397,7 @@ const Dashboard = ({ setCurrentPage, currentUser }) => {
               </svg>
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Total Customers</p>
+              <p className="text-sm font-medium text-gray-600">Toplam Müşteri</p>
               <p className="text-2xl font-bold text-gray-900">{stats.totalCustomers}</p>
             </div>
           </div>
@@ -411,7 +411,7 @@ const Dashboard = ({ setCurrentPage, currentUser }) => {
               </svg>
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Today's Appointments</p>
+              <p className="text-sm font-medium text-gray-600">Bugünün Randevuları</p>
               <p className="text-2xl font-bold text-gray-900">{stats.todayAppointments}</p>
             </div>
           </div>
@@ -425,7 +425,7 @@ const Dashboard = ({ setCurrentPage, currentUser }) => {
               </svg>
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Upcoming</p>
+              <p className="text-sm font-medium text-gray-600">Gelecek</p>
               <p className="text-2xl font-bold text-gray-900">{stats.upcomingAppointments}</p>
             </div>
           </div>
@@ -434,7 +434,7 @@ const Dashboard = ({ setCurrentPage, currentUser }) => {
 
       <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-lg font-bold text-gray-800">Quick Actions</h2>
+          <h2 className="text-lg font-bold text-gray-800">Hızlı İşlemler</h2>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
           <button 
@@ -446,7 +446,7 @@ const Dashboard = ({ setCurrentPage, currentUser }) => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
               </svg>
             </div>
-            <span className="font-medium text-gray-700">Customers</span>
+            <span className="font-medium text-gray-700">Müşteriler</span>
           </button>
           
           <button 
@@ -458,7 +458,7 @@ const Dashboard = ({ setCurrentPage, currentUser }) => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
             </div>
-            <span className="font-medium text-gray-700">New Appointment</span>
+            <span className="font-medium text-gray-700">Yeni Randevu</span>
           </button>
           
           <button 
@@ -470,7 +470,7 @@ const Dashboard = ({ setCurrentPage, currentUser }) => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
               </svg>
             </div>
-            <span className="font-medium text-gray-700">All Appointments</span>
+            <span className="font-medium text-gray-700">Tüm Randevular</span>
           </button>
           
           <div className="flex flex-col items-center justify-center p-6 bg-gray-50 rounded-xl">
@@ -480,7 +480,7 @@ const Dashboard = ({ setCurrentPage, currentUser }) => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
             </div>
-            <span className="font-medium text-gray-700">Settings</span>
+            <span className="font-medium text-gray-700">Ayarlar</span>
           </div>
         </div>
       </div>
@@ -488,12 +488,12 @@ const Dashboard = ({ setCurrentPage, currentUser }) => {
       {/* Today's Appointments */}
       <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100 mt-6">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-bold text-gray-800">Today's Appointments ({todayAppointments.length})</h3>
+          <h3 className="text-lg font-bold text-gray-800">Bugünün Randevuları ({todayAppointments.length})</h3>
           <button 
             onClick={() => setCurrentPage('appointmentsList')}
             className="text-sm text-rose-600 hover:text-rose-800 font-medium"
           >
-            View All
+            Tümünü Gör
           </button>
         </div>
         
@@ -514,7 +514,7 @@ const Dashboard = ({ setCurrentPage, currentUser }) => {
                   </div>
                   <div className="text-right">
                     <div className="text-sm font-medium text-gray-900">
-                      {appointment.customerName || 'Unknown Customer'}
+                      {appointment.customerName || 'Bilinmeyen Müşteri'}
                     </div>
                     {appointment.customerPhone && (
                       <div className="text-xs text-gray-500">
@@ -531,7 +531,7 @@ const Dashboard = ({ setCurrentPage, currentUser }) => {
             <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mx-auto text-gray-300 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
-            <p>No appointments scheduled for today</p>
+            <p>Bugün için randevu planlanmadı</p>
           </div>
         )}
       </div>
@@ -539,12 +539,12 @@ const Dashboard = ({ setCurrentPage, currentUser }) => {
       {/* Tomorrow's Appointments */}
       <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100 mt-6">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-bold text-gray-800">Tomorrow's Appointments ({tomorrowAppointments.length})</h3>
+          <h3 className="text-lg font-bold text-gray-800">Yarının Randevuları ({tomorrowAppointments.length})</h3>
           <button 
             onClick={() => setCurrentPage('appointmentsList')}
             className="text-sm text-rose-600 hover:text-rose-800 font-medium"
           >
-            View All
+            Tümünü Gör
           </button>
         </div>
         
@@ -565,7 +565,7 @@ const Dashboard = ({ setCurrentPage, currentUser }) => {
                   </div>
                   <div className="text-right">
                     <div className="text-sm font-medium text-gray-900">
-                      {appointment.customerName || 'Unknown Customer'}
+                      {appointment.customerName || 'Bilinmeyen Müşteri'}
                     </div>
                     {appointment.customerPhone && (
                       <div className="text-xs text-gray-500">
@@ -582,7 +582,7 @@ const Dashboard = ({ setCurrentPage, currentUser }) => {
             <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mx-auto text-gray-300 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
-            <p>No appointments scheduled for tomorrow</p>
+            <p>Yarın için randevu planlanmadı</p>
           </div>
         )}
       </div>
@@ -592,9 +592,14 @@ const Dashboard = ({ setCurrentPage, currentUser }) => {
 
 const Customers = ({ setCurrentPage, currentUser, setSelectedCustomer }) => {
   const [customers, setCustomers] = useState([]);
+  const [filteredCustomers, setFilteredCustomers] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState(null);
+  const [showAppointmentsModal, setShowAppointmentsModal] = useState(false);
+  const [selectedCustomerAppointments, setSelectedCustomerAppointments] = useState([]);
+  const [selectedCustomerForAppointments, setSelectedCustomerForAppointments] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -611,12 +616,28 @@ const Customers = ({ setCurrentPage, currentUser, setSelectedCustomer }) => {
       setLoading(true);
       const customerList = await getAllCustomers();
       setCustomers(customerList);
+      setFilteredCustomers(customerList);
     } catch (error) {
       console.error('Error loading customers:', error);
     } finally {
       setLoading(false);
     }
   };
+
+  // Filter customers based on search term
+  useEffect(() => {
+    if (searchTerm.trim() === '') {
+      setFilteredCustomers(customers);
+    } else {
+      const term = searchTerm.toLowerCase();
+      const filtered = customers.filter(customer => 
+        customer.name.toLowerCase().includes(term) ||
+        customer.email.toLowerCase().includes(term) ||
+        (customer.phone && customer.phone.includes(term))
+      );
+      setFilteredCustomers(filtered);
+    }
+  }, [searchTerm, customers]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -655,7 +676,7 @@ const Customers = ({ setCurrentPage, currentUser, setSelectedCustomer }) => {
   };
 
   const handleDelete = async (customerId) => {
-    if (window.confirm('Are you sure you want to delete this customer?')) {
+    if (window.confirm('Bu müşteriyi silmek istediğinizden emin misiniz?')) {
       try {
         await deleteCustomer(customerId);
         loadCustomers();
@@ -668,6 +689,29 @@ const Customers = ({ setCurrentPage, currentUser, setSelectedCustomer }) => {
   const handleSelectForAppointment = (customer) => {
     setSelectedCustomer(customer);
     setCurrentPage('appointments');
+  };
+
+  // Show future appointments for a customer
+  const showFutureAppointments = async (customer) => {
+    try {
+      // Load all appointments
+      const allAppointments = await getAllAppointments();
+      
+      // Filter appointments for this customer that are in the future
+      const now = new Date();
+      const futureAppointments = allAppointments
+        .filter(appointment => 
+          appointment.customerId === customer.id && 
+          new Date(appointment.date.seconds * 1000) > now
+        )
+        .sort((a, b) => new Date(a.date.seconds * 1000) - new Date(b.date.seconds * 1000));
+      
+      setSelectedCustomerAppointments(futureAppointments);
+      setSelectedCustomerForAppointments(customer);
+      setShowAppointmentsModal(true);
+    } catch (error) {
+      console.error('Error loading customer appointments:', error);
+    }
   };
 
   const handleCancel = () => {
@@ -690,10 +734,24 @@ const Customers = ({ setCurrentPage, currentUser, setSelectedCustomer }) => {
     <div>
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">Customer Management</h1>
-          <p className="text-gray-600 mt-1">Manage your clients and their information</p>
+          <h1 className="text-2xl font-bold text-gray-800">Müşteri Yönetimi</h1>
+          <p className="text-gray-600 mt-1">Müşterilerinizi ve bilgilerini yönetin</p>
         </div>
-        <div className="mt-4 sm:mt-0">
+        <div className="mt-4 sm:mt-0 flex space-x-3">
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Müşteri ara..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-300 focus:border-rose-400 outline-none transition w-64"
+            />
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+          </div>
           <button 
             onClick={() => setShowForm(true)}
             className="bg-gradient-to-r from-rose-500 to-purple-600 hover:from-rose-600 hover:to-purple-700 text-white font-medium py-2 px-4 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 flex items-center"
@@ -701,7 +759,7 @@ const Customers = ({ setCurrentPage, currentUser, setSelectedCustomer }) => {
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
             </svg>
-            Add Customer
+            Müşteri Ekle
           </button>
         </div>
       </div>
@@ -709,13 +767,13 @@ const Customers = ({ setCurrentPage, currentUser, setSelectedCustomer }) => {
       {showForm && (
         <div className="bg-white rounded-2xl shadow-sm p-6 mb-8 border border-gray-100">
           <h2 className="text-xl font-bold text-gray-800 mb-6">
-            {editingCustomer ? 'Edit Customer' : 'Add New Customer'}
+            {editingCustomer ? 'Müşteriyi Düzenle' : 'Yeni Müşteri Ekle'}
           </h2>
           <form onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
               <div>
                 <label className="block text-gray-700 text-sm font-medium mb-2" htmlFor="name">
-                  Full Name *
+                  Ad Soyad *
                 </label>
                 <input
                   type="text"
@@ -730,7 +788,7 @@ const Customers = ({ setCurrentPage, currentUser, setSelectedCustomer }) => {
               </div>
               <div>
                 <label className="block text-gray-700 text-sm font-medium mb-2" htmlFor="email">
-                  Email *
+                  E-posta *
                 </label>
                 <input
                   type="email"
@@ -739,13 +797,13 @@ const Customers = ({ setCurrentPage, currentUser, setSelectedCustomer }) => {
                   value={formData.email}
                   onChange={handleInputChange}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-300 focus:border-rose-400 outline-none transition"
-                  placeholder="jane@example.com"
+                  placeholder="jane@ornek.com"
                   required
                 />
               </div>
               <div>
                 <label className="block text-gray-700 text-sm font-medium mb-2" htmlFor="phone">
-                  Phone Number
+                  Telefon Numarası
                 </label>
                 <input
                   type="tel"
@@ -759,7 +817,7 @@ const Customers = ({ setCurrentPage, currentUser, setSelectedCustomer }) => {
               </div>
               <div>
                 <label className="block text-gray-700 text-sm font-medium mb-2" htmlFor="notes">
-                  Notes
+                  Notlar
                 </label>
                 <input
                   type="text"
@@ -768,7 +826,7 @@ const Customers = ({ setCurrentPage, currentUser, setSelectedCustomer }) => {
                   value={formData.notes}
                   onChange={handleInputChange}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-300 focus:border-rose-400 outline-none transition"
-                  placeholder="Special requests or notes"
+                  placeholder="Özel istekler veya notlar"
                 />
               </div>
             </div>
@@ -778,16 +836,81 @@ const Customers = ({ setCurrentPage, currentUser, setSelectedCustomer }) => {
                 onClick={handleCancel}
                 className="px-5 py-2.5 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors duration-200"
               >
-                Cancel
+                İptal
               </button>
               <button
                 type="submit"
                 className="px-5 py-2.5 bg-gradient-to-r from-rose-500 to-purple-600 hover:from-rose-600 hover:to-purple-700 text-white font-medium rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
               >
-                {editingCustomer ? 'Update Customer' : 'Add Customer'}
+                {editingCustomer ? 'Müşteriyi Güncelle' : 'Müşteri Ekle'}
               </button>
             </div>
           </form>
+        </div>
+      )}
+
+      {/* Future Appointments Modal */}
+      {showAppointmentsModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full max-h-[80vh] overflow-hidden flex flex-col">
+            <div className="px-6 py-4 bg-gradient-to-r from-rose-500 to-purple-600 text-white">
+              <div className="flex justify-between items-center">
+                <h3 className="text-xl font-bold">
+                  {selectedCustomerForAppointments?.name} için Gelecek Randevular
+                </h3>
+                <button 
+                  onClick={() => setShowAppointmentsModal(false)}
+                  className="text-white hover:text-gray-200"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            
+            <div className="p-6 flex-grow overflow-y-auto">
+              {selectedCustomerAppointments.length > 0 ? (
+                <div className="space-y-4">
+                  {selectedCustomerAppointments.map((appointment) => {
+                    const appointmentDate = new Date(appointment.date.seconds * 1000);
+                    return (
+                      <div key={appointment.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <div className="font-medium text-gray-900">
+                              {appointmentDate.toLocaleDateString('tr-TR', { 
+                                weekday: 'long', 
+                                year: 'numeric', 
+                                month: 'long', 
+                                day: 'numeric' 
+                              })}
+                            </div>
+                            <div className="text-sm text-gray-500 mt-1">
+                              {appointmentDate.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <div className="font-medium text-gray-900">{appointment.service}</div>
+                            <div className="text-sm text-gray-500">
+                              {appointment.duration || 60} dakika
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mx-auto text-gray-300 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  <p>Bu müşteri için gelecek randevu bulunamadı</p>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       )}
 
@@ -796,14 +919,14 @@ const Customers = ({ setCurrentPage, currentUser, setSelectedCustomer }) => {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Notes</th>
-                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Müşteri</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">İletişim</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Notlar</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">İşlemler</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {customers.map((customer) => (
+              {filteredCustomers.map((customer) => (
                 <tr key={customer.id} className="hover:bg-gray-50 transition-colors duration-150">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
@@ -829,37 +952,43 @@ const Customers = ({ setCurrentPage, currentUser, setSelectedCustomer }) => {
                       onClick={() => handleSelectForAppointment(customer)}
                       className="text-rose-600 hover:text-rose-900 mr-3"
                     >
-                      Schedule
+                      Randevu
+                    </button>
+                    <button 
+                      onClick={() => showFutureAppointments(customer)}
+                      className="text-blue-600 hover:text-blue-900 mr-3"
+                    >
+                      Gelecek
                     </button>
                     <button 
                       onClick={() => handleEdit(customer)}
                       className="text-indigo-600 hover:text-indigo-900 mr-3"
                     >
-                      Edit
+                      Düzenle
                     </button>
                     <button 
                       onClick={() => handleDelete(customer.id)}
                       className="text-red-600 hover:text-red-900"
                     >
-                      Delete
+                      Sil
                     </button>
                   </td>
                 </tr>
               ))}
-              {customers.length === 0 && (
+              {filteredCustomers.length === 0 && (
                 <tr>
                   <td colSpan="4" className="px-6 py-12 text-center">
                     <div className="flex flex-col items-center justify-center">
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-gray-400 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                       </svg>
-                      <h3 className="text-lg font-medium text-gray-900 mb-1">No customers found</h3>
-                      <p className="text-gray-500">Get started by adding a new customer.</p>
+                      <h3 className="text-lg font-medium text-gray-900 mb-1">Müşteri bulunamadı</h3>
+                      <p className="text-gray-500">Yeni bir müşteri ekleyerek başlayın.</p>
                       <button
                         onClick={() => setShowForm(true)}
                         className="mt-4 inline-flex items-center px-4 py-2 bg-gradient-to-r from-rose-500 to-purple-600 hover:from-rose-600 hover:to-purple-700 text-white font-medium rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
                       >
-                        Add Customer
+                        Müşteri Ekle
                       </button>
                     </div>
                   </td>
@@ -946,7 +1075,7 @@ const Appointments = ({ setCurrentPage, currentUser, selectedCustomer }) => {
       
       // Check for conflicts
       if (checkForConflicts(appointmentDateTime, parseInt(formData.duration) || 60)) {
-        if (!window.confirm('There is already an appointment scheduled at this time. Do you want to proceed anyway?')) {
+        if (!window.confirm('Bu saatte zaten bir randevu planlanmış. Yine de devam etmek istiyor musunuz?')) {
           return;
         }
       }
@@ -971,9 +1100,8 @@ const Appointments = ({ setCurrentPage, currentUser, selectedCustomer }) => {
       setShowForm(false);
       loadAppointments();
       
-      if (selectedCustomer) {
-        setCurrentPage('customers');
-      }
+      // Stay on the appointments page after creating a new appointment
+      // If needed, we can add other logic here in the future
     } catch (error) {
       console.error('Error saving appointment:', error);
     }
@@ -997,7 +1125,7 @@ const Appointments = ({ setCurrentPage, currentUser, selectedCustomer }) => {
   };
 
   const handleDelete = async (appointmentId) => {
-    if (window.confirm('Are you sure you want to delete this appointment?')) {
+    if (window.confirm('Bu randevuyu silmek istediğinizden emin misiniz?')) {
       try {
         await deleteAppointment(appointmentId);
         loadAppointments();
@@ -1013,9 +1141,8 @@ const Appointments = ({ setCurrentPage, currentUser, selectedCustomer }) => {
     setShowForm(false);
     setSelectedDate(null);
     
-    if (selectedCustomer) {
-      setCurrentPage('customers');
-    }
+    // Stay on the appointments page when canceling
+    // If needed, we can add other logic here in the future
   };
 
   const getAppointmentsForMonth = () => {
@@ -1068,13 +1195,14 @@ const Appointments = ({ setCurrentPage, currentUser, selectedCustomer }) => {
     const month = currentDate.getMonth();
     const dayDate = new Date(year, month, day);
     
+    // Normalize the dayDate for comparison
+    const normalizedDayDate = new Date(year, month, day);
+    
     return appointments.filter(app => {
       const appDate = new Date(app.date.seconds * 1000);
-      return (
-        appDate.getDate() === day &&
-        appDate.getMonth() === month &&
-        appDate.getFullYear() === year
-      );
+      // Normalize appDate for comparison
+      const normalizedAppDate = new Date(appDate.getFullYear(), appDate.getMonth(), appDate.getDate());
+      return normalizedAppDate.getTime() === normalizedDayDate.getTime();
     });
   };
 
@@ -1085,12 +1213,16 @@ const Appointments = ({ setCurrentPage, currentUser, selectedCustomer }) => {
     const month = currentDate.getMonth();
     const selectedDateObj = new Date(year, month, day);
     
+    // Adjust for timezone by setting time to noon to avoid DST issues
+    selectedDateObj.setHours(12, 0, 0, 0);
+    
     setSelectedDate(selectedDateObj);
     
-    // Set the date in form data
+    // Set the date in form data using local date formatting
+    const formattedDate = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     setFormData(prev => ({
       ...prev,
-      date: selectedDateObj.toISOString().split('T')[0]
+      date: formattedDate
     }));
     
     // Show time selector
@@ -1099,24 +1231,23 @@ const Appointments = ({ setCurrentPage, currentUser, selectedCustomer }) => {
 
   const formatDate = (dateString) => {
     const options = { hour: '2-digit', minute: '2-digit' };
-    return new Date(dateString.seconds * 1000).toLocaleTimeString('en-US', options);
+    return new Date(dateString.seconds * 1000).toLocaleTimeString('tr-TR', options);
   };
 
   const days = getDaysInMonth();
   const monthNames = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
+    'Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran',
+    'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'
   ];
 
   // Get appointments for the selected date
   const selectedDateAppointments = selectedDate 
     ? appointments.filter(app => {
         const appDate = new Date(app.date.seconds * 1000);
-        return (
-          appDate.getDate() === selectedDate.getDate() &&
-          appDate.getMonth() === selectedDate.getMonth() &&
-          appDate.getFullYear() === selectedDate.getFullYear()
-        );
+        // Normalize both dates to avoid timezone issues
+        const normalizedAppDate = new Date(appDate.getFullYear(), appDate.getMonth(), appDate.getDate());
+        const normalizedSelectedDate = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
+        return normalizedAppDate.getTime() === normalizedSelectedDate.getTime();
       })
     : [];
 
@@ -1135,9 +1266,9 @@ const Appointments = ({ setCurrentPage, currentUser, selectedCustomer }) => {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
         <div>
           <h1 className="text-2xl font-bold text-gray-800">
-            {selectedCustomer ? `New Appointment for ${selectedCustomer.name}` : 'Appointment Calendar'}
+            {selectedCustomer ? `${selectedCustomer.name} için Yeni Randevu` : 'Randevu Takvimi'}
           </h1>
-          <p className="text-gray-600 mt-1">Schedule and manage your appointments</p>
+          <p className="text-gray-600 mt-1">Randevularınızı planlayın ve yönetin</p>
         </div>
         <div className="mt-4 sm:mt-0 flex space-x-3">
           {!selectedCustomer && (
@@ -1145,7 +1276,7 @@ const Appointments = ({ setCurrentPage, currentUser, selectedCustomer }) => {
               onClick={() => setCurrentPage('appointmentsList')}
               className="px-4 py-2 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors duration-200"
             >
-              All Appointments
+              Tüm Randevular
             </button>
           )}
           <button 
@@ -1155,7 +1286,7 @@ const Appointments = ({ setCurrentPage, currentUser, selectedCustomer }) => {
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
             </svg>
-            New Appointment
+            Yeni Randevu
           </button>
         </div>
       </div>
@@ -1163,14 +1294,14 @@ const Appointments = ({ setCurrentPage, currentUser, selectedCustomer }) => {
       {showForm && (
         <div className="bg-white rounded-2xl shadow-sm p-6 mb-8 border border-gray-100">
           <h2 className="text-xl font-bold text-gray-800 mb-6">
-            {editingAppointment ? 'Edit Appointment' : 'New Appointment'}
+            {editingAppointment ? 'Randevuyu Düzenle' : 'Yeni Randevu'}
           </h2>
           <form onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
               {!selectedCustomer && (
                 <div>
                   <label className="block text-gray-700 text-sm font-medium mb-2" htmlFor="customerId">
-                    Customer *
+                    Müşteri *
                   </label>
                   <select
                     id="customerId"
@@ -1180,10 +1311,10 @@ const Appointments = ({ setCurrentPage, currentUser, selectedCustomer }) => {
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-300 focus:border-rose-400 outline-none transition"
                     required
                   >
-                    <option value="">Select a customer</option>
+                    <option value="">Bir müşteri seçin</option>
                     {customers.map(customer => (
                       <option key={customer.id} value={customer.id}>
-                        {customer.name} ({customer.phone || 'No phone'})
+                        {customer.name} ({customer.phone || 'Telefon yok'})
                       </option>
                     ))}
                   </select>
@@ -1192,7 +1323,7 @@ const Appointments = ({ setCurrentPage, currentUser, selectedCustomer }) => {
               {selectedCustomer && (
                 <div>
                   <label className="block text-gray-700 text-sm font-medium mb-2">
-                    Selected Customer
+                    Seçilen Müşteri
                   </label>
                   <div className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg">
                     <div className="flex items-center">
@@ -1203,7 +1334,7 @@ const Appointments = ({ setCurrentPage, currentUser, selectedCustomer }) => {
                       </div>
                       <div className="ml-3">
                         <div className="text-sm font-medium text-gray-900">{selectedCustomer.name}</div>
-                        <div className="text-xs text-gray-500">{selectedCustomer.phone || 'No phone'}</div>
+                        <div className="text-xs text-gray-500">{selectedCustomer.phone || 'Telefon yok'}</div>
                       </div>
                     </div>
                   </div>
@@ -1211,7 +1342,7 @@ const Appointments = ({ setCurrentPage, currentUser, selectedCustomer }) => {
               )}
               <div>
                 <label className="block text-gray-700 text-sm font-medium mb-2" htmlFor="service">
-                  Service *
+                  Hizmet *
                 </label>
                 <input
                   type="text"
@@ -1220,14 +1351,14 @@ const Appointments = ({ setCurrentPage, currentUser, selectedCustomer }) => {
                   value={formData.service}
                   onChange={handleInputChange}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-300 focus:border-rose-400 outline-none transition"
-                  placeholder="Facial, Manicure, etc."
+                  placeholder="Yüz bakımı, manikür, vb."
                   required
                 />
               </div>
               
               <div>
                 <label className="block text-gray-700 text-sm font-medium mb-2" htmlFor="duration">
-                  Duration (minutes) *
+                  Süre (dakika) *
                 </label>
                 <select
                   id="duration"
@@ -1237,16 +1368,16 @@ const Appointments = ({ setCurrentPage, currentUser, selectedCustomer }) => {
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-300 focus:border-rose-400 outline-none transition"
                   required
                 >
-                  <option value="30">30 minutes</option>
-                  <option value="60">60 minutes</option>
-                  <option value="90">90 minutes</option>
-                  <option value="120">120 minutes</option>
+                  <option value="30">30 dakika</option>
+                  <option value="60">60 dakika</option>
+                  <option value="90">90 dakika</option>
+                  <option value="120">120 dakika</option>
                 </select>
               </div>
               
               <div>
                 <label className="block text-gray-700 text-sm font-medium mb-2" htmlFor="date">
-                  Date *
+                  Tarih *
                 </label>
                 <input
                   type="date"
@@ -1260,7 +1391,7 @@ const Appointments = ({ setCurrentPage, currentUser, selectedCustomer }) => {
               </div>
               <div>
                 <label className="block text-gray-700 text-sm font-medium mb-2" htmlFor="time">
-                  Time *
+                  Saat *
                 </label>
                 <input
                   type="time"
@@ -1274,7 +1405,7 @@ const Appointments = ({ setCurrentPage, currentUser, selectedCustomer }) => {
               </div>
               <div className="md:col-span-2">
                 <label className="block text-gray-700 text-sm font-medium mb-2" htmlFor="notes">
-                  Notes
+                  Notlar
                 </label>
                 <textarea
                   id="notes"
@@ -1282,7 +1413,7 @@ const Appointments = ({ setCurrentPage, currentUser, selectedCustomer }) => {
                   value={formData.notes}
                   onChange={handleInputChange}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-300 focus:border-rose-400 outline-none transition"
-                  placeholder="Special requests or notes"
+                  placeholder="Özel istekler veya notlar"
                   rows="3"
                 />
               </div>
@@ -1293,13 +1424,13 @@ const Appointments = ({ setCurrentPage, currentUser, selectedCustomer }) => {
                 onClick={handleCancel}
                 className="px-5 py-2.5 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors duration-200"
               >
-                Cancel
+                İptal
               </button>
               <button
                 type="submit"
                 className="px-5 py-2.5 bg-gradient-to-r from-rose-500 to-purple-600 hover:from-rose-600 hover:to-purple-700 text-white font-medium rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
               >
-                {editingAppointment ? 'Update Appointment' : 'Create Appointment'}
+                {editingAppointment ? 'Randevuyu Güncelle' : 'Randevu Oluştur'}
               </button>
             </div>
           </form>
@@ -1330,7 +1461,7 @@ const Appointments = ({ setCurrentPage, currentUser, selectedCustomer }) => {
         </div>
         
         <div className="grid grid-cols-7 gap-1 mb-2">
-          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+          {['Paz', 'Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt'].map(day => (
             <div key={day} className="text-center text-xs font-semibold text-gray-500 py-2">
               {day}
             </div>
@@ -1361,6 +1492,7 @@ const Appointments = ({ setCurrentPage, currentUser, selectedCustomer }) => {
                         : 'bg-white border-gray-200'
                     : 'bg-gray-50 border-gray-100'
                 }`}
+              onClick={() => handleDayClick(day)}
               >
                 {day && (
                   <>
@@ -1372,7 +1504,6 @@ const Appointments = ({ setCurrentPage, currentUser, selectedCustomer }) => {
                             ? 'text-rose-600' 
                             : 'text-gray-700'
                       }`}
-                      onClick={() => handleDayClick(day)}
                     >
                       {day}
                     </div>
@@ -1388,7 +1519,7 @@ const Appointments = ({ setCurrentPage, currentUser, selectedCustomer }) => {
                       ))}
                       {dayAppointments.length > 2 && (
                         <div className="text-xs text-gray-500 text-center">
-                          +{dayAppointments.length - 2} more
+                          +{dayAppointments.length - 2} diğer
                         </div>
                       )}
                     </div>
@@ -1423,12 +1554,12 @@ const Appointments = ({ setCurrentPage, currentUser, selectedCustomer }) => {
         <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100 mt-6">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-lg font-bold text-gray-800">
-              Appointments for {selectedDate.toLocaleDateString('en-US', { 
+              {selectedDate.toLocaleDateString('tr-TR', { 
                 weekday: 'long', 
                 year: 'numeric', 
                 month: 'long', 
                 day: 'numeric' 
-              })}
+              })} için Randevular
             </h3>
             <button 
               onClick={() => setSelectedDate(null)}
@@ -1443,7 +1574,7 @@ const Appointments = ({ setCurrentPage, currentUser, selectedCustomer }) => {
           {selectedDateAppointments.length > 0 ? (
             <div className="space-y-3">
               {selectedDateAppointments.map(appointment => {
-                const customer = customers.find(c => c.id === appointment.customerId) || { name: 'Unknown' };
+                const customer = customers.find(c => c.id === appointment.customerId) || { name: 'Bilinmeyen' };
                 return (
                   <div key={appointment.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                     <div className="flex items-center">
@@ -1465,7 +1596,7 @@ const Appointments = ({ setCurrentPage, currentUser, selectedCustomer }) => {
               <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mx-auto text-gray-300 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
-              <p>No appointments scheduled for this day</p>
+              <p>Bu gün için randevu planlanmadı</p>
             </div>
           )}
         </div>
@@ -1473,16 +1604,16 @@ const Appointments = ({ setCurrentPage, currentUser, selectedCustomer }) => {
 
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
-          <h3 className="text-lg font-bold text-gray-800">Upcoming Appointments</h3>
+          <h3 className="text-lg font-bold text-gray-800">Gelecek Randevular</h3>
         </div>
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date & Time</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Service</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tarih & Saat</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Müşteri</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hizmet</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">İşlemler</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -1490,7 +1621,7 @@ const Appointments = ({ setCurrentPage, currentUser, selectedCustomer }) => {
                 .filter(app => new Date(app.date.seconds * 1000) >= new Date())
                 .sort((a, b) => new Date(a.date.seconds * 1000) - new Date(b.date.seconds * 1000))
                 .map((appointment) => {
-                  const customer = customers.find(c => c.id === appointment.customerId) || { name: 'Unknown' };
+                  const customer = customers.find(c => c.id === appointment.customerId) || { name: 'Bilinmeyen' };
                   return (
                     <tr key={appointment.id} className="hover:bg-gray-50 transition-colors duration-150">
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -1503,7 +1634,7 @@ const Appointments = ({ setCurrentPage, currentUser, selectedCustomer }) => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-900">{customer.name}</div>
-                        <div className="text-sm text-gray-500">{customer.phone || 'No phone'}</div>
+                        <div className="text-sm text-gray-500">{customer.phone || 'Telefon yok'}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {appointment.service}
@@ -1513,13 +1644,13 @@ const Appointments = ({ setCurrentPage, currentUser, selectedCustomer }) => {
                           onClick={() => handleEdit(appointment)}
                           className="text-indigo-600 hover:text-indigo-900 mr-3"
                         >
-                          Edit
+                          Düzenle
                         </button>
                         <button 
                           onClick={() => handleDelete(appointment.id)}
                           className="text-red-600 hover:text-red-900"
                         >
-                          Delete
+                          Sil
                         </button>
                       </td>
                     </tr>
@@ -1532,8 +1663,8 @@ const Appointments = ({ setCurrentPage, currentUser, selectedCustomer }) => {
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-gray-400 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                       </svg>
-                      <h3 className="text-lg font-medium text-gray-900 mb-1">No upcoming appointments</h3>
-                      <p className="text-gray-500">Schedule a new appointment to get started.</p>
+                      <h3 className="text-lg font-medium text-gray-900 mb-1">Gelecek randevu bulunamadı</h3>
+                      <p className="text-gray-500">Başlamak için yeni bir randevu planlayın.</p>
                     </div>
                   </td>
                 </tr>
@@ -1562,6 +1693,7 @@ const TimeSlotSelector = ({ selectedDate, appointments, onSelectTime, onCancel }
   // Check if a time slot is occupied
   const isTimeSlotOccupied = (time) => {
     const [hours, minutes] = time.split(':').map(Number);
+    // Create a new date object to avoid modifying the original selectedDate
     const slotTime = new Date(selectedDate);
     slotTime.setHours(hours, minutes, 0, 0);
     
@@ -1580,9 +1712,9 @@ const TimeSlotSelector = ({ selectedDate, appointments, onSelectTime, onCancel }
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl shadow-xl max-w-md w-full max-h-[80vh] overflow-hidden flex flex-col">
         <div className="px-6 py-4 bg-gradient-to-r from-rose-500 to-purple-600 text-white">
-          <h3 className="text-xl font-bold">Select Time Slot</h3>
+          <h3 className="text-xl font-bold">Saat Aralığı Seçin</h3>
           <p className="text-rose-100 mt-1">
-            {selectedDate.toLocaleDateString('en-US', { 
+            {selectedDate.toLocaleDateString('tr-TR', { 
               weekday: 'long', 
               year: 'numeric', 
               month: 'long', 
@@ -1608,7 +1740,7 @@ const TimeSlotSelector = ({ selectedDate, appointments, onSelectTime, onCancel }
                 >
                   <div className="font-medium">{time}</div>
                   <div className="text-xs mt-1">
-                    {isOccupied ? 'Occupied' : 'Available'}
+                    {isOccupied ? 'Dolu' : 'Müsait'}
                   </div>
                 </button>
               );
@@ -1621,7 +1753,7 @@ const TimeSlotSelector = ({ selectedDate, appointments, onSelectTime, onCancel }
             onClick={onCancel}
             className="px-4 py-2 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors duration-200"
           >
-            Cancel
+            İptal
           </button>
         </div>
       </div>
@@ -1670,7 +1802,7 @@ const AppointmentsList = ({ setCurrentPage, currentUser }) => {
   };
 
   const handleDelete = async (appointmentId) => {
-    if (window.confirm('Are you sure you want to delete this appointment?')) {
+    if (window.confirm('Bu randevuyu silmek istediğinizden emin misiniz?')) {
       try {
         await deleteAppointment(appointmentId);
         loadAppointments();
@@ -1710,8 +1842,8 @@ const AppointmentsList = ({ setCurrentPage, currentUser }) => {
     <div>
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">All Appointments</h1>
-          <p className="text-gray-600 mt-1">View and manage all scheduled appointments</p>
+          <h1 className="text-2xl font-bold text-gray-800">Tüm Randevular</h1>
+          <p className="text-gray-600 mt-1">Tüm planlanmış randevuları görüntüleyin ve yönetin</p>
         </div>
         <div className="mt-4 sm:mt-0 flex space-x-3">
           <div className="inline-flex rounded-md shadow-sm" role="group">
@@ -1723,7 +1855,7 @@ const AppointmentsList = ({ setCurrentPage, currentUser }) => {
                   : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
               }`}
             >
-              Upcoming
+              Yaklaşan
             </button>
             <button
               onClick={() => setFilter('past')}
@@ -1733,7 +1865,7 @@ const AppointmentsList = ({ setCurrentPage, currentUser }) => {
                   : 'bg-white text-gray-700 hover:bg-gray-50 border-t border-b border-gray-200'
               }`}
             >
-              Past
+              Geçmiş
             </button>
             <button
               onClick={() => setFilter('all')}
@@ -1743,7 +1875,7 @@ const AppointmentsList = ({ setCurrentPage, currentUser }) => {
                   : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
               }`}
             >
-              All
+              Tümü
             </button>
           </div>
           <button 
@@ -1753,7 +1885,7 @@ const AppointmentsList = ({ setCurrentPage, currentUser }) => {
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
             </svg>
-            New Appointment
+            Yeni Randevu
           </button>
         </div>
       </div>
@@ -1763,16 +1895,16 @@ const AppointmentsList = ({ setCurrentPage, currentUser }) => {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date & Time</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Service</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tarih & Saat</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Müşteri</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hizmet</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Durum</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">İşlemler</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {sortedAppointments.map((appointment) => {
-                const customer = customers.find(c => c.id === appointment.customerId) || { name: 'Unknown' };
+                const customer = customers.find(c => c.id === appointment.customerId) || { name: 'Bilinmeyen' };
                 const appointmentDate = new Date(appointment.date.seconds * 1000);
                                 const isPast = appointmentDate < new Date();
                 return (
@@ -1787,7 +1919,7 @@ const AppointmentsList = ({ setCurrentPage, currentUser }) => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">{customer.name}</div>
-                      <div className="text-sm text-gray-500">{customer.phone || 'No phone'}</div>
+                      <div className="text-sm text-gray-500">{customer.phone || 'Telefon yok'}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {appointment.service}
@@ -1798,7 +1930,7 @@ const AppointmentsList = ({ setCurrentPage, currentUser }) => {
                           ? 'bg-gray-100 text-gray-800' 
                           : 'bg-green-100 text-green-800'
                       }`}>
-                        {isPast ? 'Past' : 'Upcoming'}
+                        {isPast ? 'Geçmiş' : 'Yaklaşan'}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -1806,17 +1938,17 @@ const AppointmentsList = ({ setCurrentPage, currentUser }) => {
                         onClick={() => {
                           // Since we can't easily pass the appointment data to the other component,
                           // we'll just show an alert for now
-                          alert('Editing would be implemented here. In a full app, this would open the edit form.');
+                          alert('Düzenleme burada uygulanacaktır. Tam bir uygulamada, bu düzenleme formunu açacaktır.');
                         }}
                         className="text-indigo-600 hover:text-indigo-900 mr-3"
                       >
-                        Edit
+                        Düzenle
                       </button>
                       <button 
                         onClick={() => handleDelete(appointment.id)}
                         className="text-red-600 hover:text-red-900"
                       >
-                        Delete
+                        Sil
                       </button>
                     </td>
                   </tr>
@@ -1829,13 +1961,13 @@ const AppointmentsList = ({ setCurrentPage, currentUser }) => {
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-gray-400 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                       </svg>
-                      <h3 className="text-lg font-medium text-gray-900 mb-1">No appointments found</h3>
-                      <p className="text-gray-500">Schedule a new appointment to get started.</p>
+                      <h3 className="text-lg font-medium text-gray-900 mb-1">Randevu bulunamadı</h3>
+                      <p className="text-gray-500">Başlamak için yeni bir randevu planlayın.</p>
                       <button
                         onClick={() => setCurrentPage('customers')}
                         className="mt-4 inline-flex items-center px-4 py-2 bg-gradient-to-r from-rose-500 to-purple-600 hover:from-rose-600 hover:to-purple-700 text-white font-medium rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
                       >
-                        Create Appointment
+                        Randevu Oluştur
                       </button>
                     </div>
                   </td>

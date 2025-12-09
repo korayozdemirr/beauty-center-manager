@@ -1,66 +1,66 @@
-# Beauty Salon Appointment System
+# Güzellik Salonu Randevu Sistemi
 
-A comprehensive appointment management system for beauty salons with customer management and calendar features.
+Güzellik salonları için müşteri yönetimi ve takvim özelliklerine sahip kapsamlı bir randevu yönetim sistemi.
 
-## Features
+## Özellikler
 
-- Admin authentication
-- Customer management (CRUD operations)
-- Appointment scheduling with calendar view
-- Responsive design with feminine color scheme
+- Yönetici kimlik doğrulama
+- Müşteri yönetimi (CRUD işlemleri)
+- Takvim görünümüyle randevu planlama
+- Kadınsı renk şemasıyla duyarlı tasarım
 
-## Tech Stack
+## Teknoloji Yığını
 
 - React (Vite)
-- Firebase (Authentication & Firestore)
+- Firebase (Kimlik Doğrulama & Firestore)
 - Tailwind CSS
 
-## Setup Instructions
+## Kurulum Talimatları
 
-1. Clone the repository
-2. Install dependencies:
+1. Depoyu klonlayın
+2. Bağımlılıkları yükleyin:
    ```
    npm install
    ```
 
-3. Set up Firebase:
-   - Create a Firebase project at https://console.firebase.google.com/
-   - Copy your Firebase configuration
-   - Create a `.env` file in the root directory with your Firebase credentials:
+3. Firebase'i ayarlayın:
+   - https://console.firebase.google.com/ adresinde bir Firebase projesi oluşturun
+   - Firebase yapılandırmanızı kopyalayın
+   - Kök dizinde Firebase kimlik bilgilerinizle bir `.env` dosyası oluşturun:
      ```
-     VITE_FIREBASE_API_KEY=your_api_key
-     VITE_FIREBASE_AUTH_DOMAIN=your_auth_domain
-     VITE_FIREBASE_PROJECT_ID=your_project_id
-     VITE_FIREBASE_STORAGE_BUCKET=your_storage_bucket
-     VITE_FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id
-     VITE_FIREBASE_APP_ID=your_app_id
+     VITE_FIREBASE_API_KEY=api_anhtarınız
+     VITE_FIREBASE_AUTH_DOMAIN=auth_domaininiz
+     VITE_FIREBASE_PROJECT_ID=proje_idniz
+     VITE_FIREBASE_STORAGE_BUCKET=storage_bucketiniz
+     VITE_FIREBASE_MESSAGING_SENDER_ID=messaging_sender_idniz
+     VITE_FIREBASE_APP_ID=app_idniz
      ```
 
-4. Run the development server:
+4. Geliştirme sunucusunu çalıştırın:
    ```
    npm run dev
    ```
 
-## Usage
+## Kullanım
 
-1. Log in with your admin credentials
-2. Manage customers in the "Customers" section
-3. Schedule and manage appointments in the "Appointments" section
-4. View dashboard statistics on the home page
+1. Yönetici kimlik bilgilerinizle giriş yapın
+2. "Müşteriler" bölümünde müşterileri yönetin
+3. "Randevular" bölümünde randevuları planlayın ve yönetin
+4. Ana sayfada panel istatistiklerini görüntüleyin
 
-## Project Structure
+## Proje Yapısı
 
 ```
 src/
-├── components/     # Reusable UI components
-├── firebase/       # Firebase configuration and initialization
-├── services/       # Business logic for customers and appointments
-├── App.jsx         # Main application component
-└── main.jsx        # Application entry point
+├── components/     # Yeniden kullanılabilir UI bileşenleri
+├── firebase/       # Firebase yapılandırması ve başlatma
+├── services/       # Müşteriler ve randevular için iş mantığı
+├── App.jsx         # Ana uygulama bileşeni
+└── main.jsx        # Uygulama giriş noktası
 ```
 
-## Available Scripts
+## Mevcut Komut Dosyaları
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build# beauty-center-manager
+- `npm run dev` - Geliştirme sunucusunu başlat
+- `npm run build` - Üretim için derle
+- `npm run preview` - Üretim derlemesini önizle# guzellik-merkezi-yonetici
