@@ -788,7 +788,7 @@ const Customers = ({ setCurrentPage, currentUser, setSelectedCustomer }) => {
               </div>
               <div>
                 <label className="block text-gray-700 text-sm font-medium mb-2" htmlFor="email">
-                  E-posta *
+                  E-posta
                 </label>
                 <input
                   type="email"
@@ -798,12 +798,12 @@ const Customers = ({ setCurrentPage, currentUser, setSelectedCustomer }) => {
                   onChange={handleInputChange}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-300 focus:border-rose-400 outline-none transition"
                   placeholder="jane@ornek.com"
-                  required
+      
                 />
               </div>
               <div>
                 <label className="block text-gray-700 text-sm font-medium mb-2" htmlFor="phone">
-                  Telefon Numarası
+                  Telefon Numarası *
                 </label>
                 <input
                   type="tel"
@@ -813,6 +813,7 @@ const Customers = ({ setCurrentPage, currentUser, setSelectedCustomer }) => {
                   onChange={handleInputChange}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-300 focus:border-rose-400 outline-none transition"
                   placeholder="(555) 123-4567"
+                  required
                 />
               </div>
               <div>
