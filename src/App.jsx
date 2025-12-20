@@ -959,7 +959,7 @@ const Customers = ({ setCurrentPage, currentUser, setSelectedCustomer }) => {
                       onClick={() => showFutureAppointments(customer)}
                       className="text-blue-600 hover:text-blue-900 mr-3"
                     >
-                      Gelecek
+                      Bilgi
                     </button>
                     <button 
                       onClick={() => handleEdit(customer)}
@@ -1047,7 +1047,14 @@ const Appointments = ({ setCurrentPage, currentUser, selectedCustomer }) => {
     }
   };
 
-  const checkForConflicts = (newDate, durationMinutes = 60) => {
+  // Check if two services are compatible (different services can be scheduled at the same time)
+  const areServicesCompatible = (service1, service2) => {
+    // If services are the same, they're not compatible (prevent double booking)
+    // If services are different, they're compatible (allow simultaneous booking)
+    return service1 !== service2;
+  };
+  
+  const checkForConflicts = (newDate, durationMinutes = 60, serviceType = '') => {
     const newStart = new Date(newDate);
     const newEnd = new Date(newStart.getTime() + durationMinutes * 60000);
     
@@ -1056,8 +1063,17 @@ const Appointments = ({ setCurrentPage, currentUser, selectedCustomer }) => {
       const existingDuration = appointment.duration || 60;
       const existingEnd = new Date(existingStart.getTime() + existingDuration * 60000);
       
-      // Check if appointments overlap
-      return (newStart < existingEnd && newEnd > existingStart);
+      // Check if appointments overlap in time
+      const timeOverlap = (newStart < existingEnd && newEnd > existingStart);
+      
+      // If there's no time overlap, no conflict
+      if (!timeOverlap) return false;
+      
+      // If services are compatible, no conflict
+      if (areServicesCompatible(serviceType, appointment.service)) return false;
+      
+      // Conflict exists
+      return true;
     });
   };
 
@@ -1075,7 +1091,7 @@ const Appointments = ({ setCurrentPage, currentUser, selectedCustomer }) => {
       const appointmentDateTime = new Date(`${formData.date}T${formData.time}`);
       
       // Check for conflicts
-      if (checkForConflicts(appointmentDateTime, parseInt(formData.duration) || 60)) {
+      if (checkForConflicts(appointmentDateTime, parseInt(formData.duration) || 60, formData.service)) {
         if (!window.confirm('Bu saatte zaten bir randevu planlanmış. Yine de devam etmek istiyor musunuz?')) {
           return;
         }
@@ -1345,16 +1361,21 @@ const Appointments = ({ setCurrentPage, currentUser, selectedCustomer }) => {
                 <label className="block text-gray-700 text-sm font-medium mb-2" htmlFor="service">
                   Hizmet *
                 </label>
-                <input
-                  type="text"
+                <select
                   id="service"
                   name="service"
                   value={formData.service}
                   onChange={handleInputChange}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-300 focus:border-rose-400 outline-none transition"
-                  placeholder="Yüz bakımı, manikür, vb."
                   required
-                />
+                >
+                  <option value="">Hizmet Seçin</option>
+                  <option value="buz lazer">Buz Lazer</option>
+                  <option value="alex lazer">Alex Lazer</option>
+                  <option value="cilt bakımı">Cilt Bakımı</option>
+                  <option value="nail art">Nail Art</option>
+                  <option value="yağ yakımı">Yağ Yakımı</option>
+                </select>
               </div>
               
               <div>
@@ -1536,6 +1557,7 @@ const Appointments = ({ setCurrentPage, currentUser, selectedCustomer }) => {
         <TimeSlotSelector 
           selectedDate={selectedDate} 
           appointments={appointments} 
+          serviceType={formData.service}
           onSelectTime={(time) => {
             setFormData(prev => ({
               ...prev,
@@ -1678,7 +1700,7 @@ const Appointments = ({ setCurrentPage, currentUser, selectedCustomer }) => {
   );
 };
 
-const TimeSlotSelector = ({ selectedDate, appointments, onSelectTime, onCancel }) => {
+const TimeSlotSelector = ({ selectedDate, appointments, serviceType, onSelectTime, onCancel }) => {
   // Generate time slots from 9:00 AM to 6:00 PM
   const generateTimeSlots = () => {
     const slots = [];
@@ -1691,7 +1713,14 @@ const TimeSlotSelector = ({ selectedDate, appointments, onSelectTime, onCancel }
     return slots;
   };
 
-  // Check if a time slot is occupied
+  // Check if two services are compatible (different services can be scheduled at the same time)
+  const areServicesCompatible = (service1, service2) => {
+    // If services are the same, they're not compatible (prevent double booking)
+    // If services are different, they're compatible (allow simultaneous booking)
+    return service1 !== service2;
+  };
+  
+  // Check if a time slot is occupied by an incompatible service
   const isTimeSlotOccupied = (time) => {
     const [hours, minutes] = time.split(':').map(Number);
     // Create a new date object to avoid modifying the original selectedDate
@@ -1703,7 +1732,17 @@ const TimeSlotSelector = ({ selectedDate, appointments, onSelectTime, onCancel }
       const appDuration = app.duration || 60;
       const appEndTime = new Date(appDate.getTime() + appDuration * 60000);
       
-      return slotTime >= appDate && slotTime < appEndTime;
+      // Check if there's time overlap
+      const timeOverlap = slotTime >= appDate && slotTime < appEndTime;
+      
+      // If there's no time overlap, slot is not occupied by this appointment
+      if (!timeOverlap) return false;
+      
+      // If services are compatible, slot is not occupied
+      if (areServicesCompatible(serviceType, app.service)) return false;
+      
+      // Slot is occupied by an incompatible service
+      return true;
     });
   };
 
