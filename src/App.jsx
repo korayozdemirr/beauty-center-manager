@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { auth } from './firebase/init';
-import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth';
+import { signInWithEmailAndPassword, signOut, onAuthStateChanged, EmailAuthProvider } from 'firebase/auth';
 import { getAllCustomers, createCustomer, updateCustomer, deleteCustomer } from './services/customerService';
 import { getAllAppointments, createAppointment, updateAppointment, deleteAppointment } from './services/appointmentService';
 import './App.css';
@@ -27,6 +27,20 @@ function App() {
     return unsubscribe;
   }, []);
 
+  // Update document title based on current page
+  useEffect(() => {
+    const pageTitles = {
+      'dashboard': 'Panel - Çağla Dağ Güzellik Merkezi',
+      'customers': 'Müşteriler - Çağla Dağ Güzellik Merkezi',
+      'appointments': 'Randevu Oluştur - Çağla Dağ Güzellik Merkezi',
+      'appointmentsList': 'Tüm Randevular - Çağla Dağ Güzellik Merkezi',
+      'settings': 'Ayarlar - Çağla Dağ Güzellik Merkezi',
+      'login': 'Giriş - Çağla Dağ Güzellik Merkezi'
+    };
+    
+    document.title = pageTitles[currentPage] || 'Çağla Dağ Güzellik Merkezi';
+  }, [currentPage]);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-rose-50 to-purple-50 flex items-center justify-center">
@@ -48,6 +62,8 @@ function App() {
         return <Appointments setCurrentPage={setCurrentPage} currentUser={currentUser} selectedCustomer={selectedCustomer} />;
       case 'appointmentsList':
         return <AppointmentsList setCurrentPage={setCurrentPage} currentUser={currentUser} />;
+      case 'settings':
+        return <Settings setCurrentPage={setCurrentPage} currentUser={currentUser} />;
       case 'login':
       default:
         return <Login setCurrentPage={setCurrentPage} />;
@@ -98,32 +114,41 @@ function App() {
           <nav className="hidden md:flex space-x-1">
             <button 
               onClick={() => {setCurrentPage('dashboard'); setIsMobileMenuOpen(false); setSelectedCustomer(null);}}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center ${
                 currentPage === 'dashboard' 
                   ? 'bg-rose-100 text-rose-700 shadow-sm' 
                   : 'text-rose-600 hover:bg-rose-50'
               }`}
             >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+              </svg>
               Panel
             </button>
             <button 
               onClick={() => {setCurrentPage('customers'); setIsMobileMenuOpen(false); setSelectedCustomer(null);}}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center ${
                 currentPage === 'customers' 
                   ? 'bg-rose-100 text-rose-700 shadow-sm' 
                   : 'text-rose-600 hover:bg-rose-50'
               }`}
             >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
               Müşteriler
             </button>
             <button 
               onClick={() => {setCurrentPage('appointmentsList'); setIsMobileMenuOpen(false); setSelectedCustomer(null);}}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center ${
                 currentPage === 'appointmentsList' 
                   ? 'bg-rose-100 text-rose-700 shadow-sm' 
                   : 'text-rose-600 hover:bg-rose-50'
               }`}
             >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
               Tüm Randevular
             </button>
             <button 
@@ -140,32 +165,41 @@ function App() {
             <div className="container mx-auto px-4 py-3 flex flex-col space-y-2">
               <button 
                 onClick={() => {setCurrentPage('dashboard'); setIsMobileMenuOpen(false); setSelectedCustomer(null);}}
-                className={`px-4 py-2 rounded-lg text-left font-medium ${
+                className={`px-4 py-2 rounded-lg text-left font-medium flex items-center ${
                   currentPage === 'dashboard' 
                     ? 'bg-rose-100 text-rose-700' 
                     : 'text-rose-600'
                 }`}
               >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg>
                 Panel
               </button>
               <button 
                 onClick={() => {setCurrentPage('customers'); setIsMobileMenuOpen(false); setSelectedCustomer(null);}}
-                className={`px-4 py-2 rounded-lg text-left font-medium ${
+                className={`px-4 py-2 rounded-lg text-left font-medium flex items-center ${
                   currentPage === 'customers' 
                     ? 'bg-rose-100 text-rose-700' 
                     : 'text-rose-600'
                 }`}
               >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
                 Müşteriler
               </button>
               <button 
                 onClick={() => {setCurrentPage('appointmentsList'); setIsMobileMenuOpen(false); setSelectedCustomer(null);}}
-                className={`px-4 py-2 rounded-lg text-left font-medium ${
+                className={`px-4 py-2 rounded-lg text-left font-medium flex items-center ${
                   currentPage === 'appointmentsList' 
                     ? 'bg-rose-100 text-rose-700' 
                     : 'text-rose-600'
                 }`}
               >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
                 Tüm Randevular
               </button>
               <button 
@@ -294,6 +328,13 @@ const Dashboard = ({ setCurrentPage, currentUser }) => {
     loadData();
   }, []);
 
+  // Function to refresh dashboard data
+  const refreshDashboardData = async () => {
+    const data = await loadDashboardData();
+    setTodayAppointments(data.todayAppointments);
+    setTomorrowAppointments(data.tomorrowAppointments);
+  };
+
   const loadDashboardData = async () => {
     try {
       setLoading(true);
@@ -334,7 +375,8 @@ const Dashboard = ({ setCurrentPage, currentUser }) => {
       
       const upcomingAppointments = appointmentsWithCustomerInfo.filter(app => {
         const appDate = new Date(app.date.seconds * 1000);
-        return appDate > tomorrowEnd;
+        const now = new Date();
+        return appDate > now;
       }).length;
       
       setStats({
@@ -473,7 +515,10 @@ const Dashboard = ({ setCurrentPage, currentUser }) => {
             <span className="font-medium text-gray-700">Tüm Randevular</span>
           </button>
           
-          <div className="flex flex-col items-center justify-center p-6 bg-gray-50 rounded-xl">
+          <button 
+            onClick={() => setCurrentPage('settings')}
+            className="flex flex-col items-center justify-center p-6 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors duration-200"
+          >
             <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-3">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
@@ -481,7 +526,7 @@ const Dashboard = ({ setCurrentPage, currentUser }) => {
               </svg>
             </div>
             <span className="font-medium text-gray-700">Ayarlar</span>
-          </div>
+          </button>
         </div>
       </div>
       
@@ -2016,6 +2061,197 @@ const AppointmentsList = ({ setCurrentPage, currentUser }) => {
             </tbody>
           </table>
         </div>
+      </div>
+    </div>
+  );
+};
+
+const Settings = ({ setCurrentPage, currentUser }) => {
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
+
+  const handleChangePassword = async (e) => {
+    e.preventDefault();
+    
+    // Reset messages
+    setMessage('');
+    setError('');
+    
+    // Validation
+    if (newPassword !== confirmPassword) {
+      setError('Yeni şifreler eşleşmiyor');
+      return;
+    }
+    
+    if (newPassword.length < 6) {
+      setError('Şifre en az 6 karakter olmalıdır');
+      return;
+    }
+    
+    if (currentPassword === newPassword) {
+      setError('Yeni şifre mevcut şifreden farklı olmalıdır');
+      return;
+    }
+    
+    setLoading(true);
+    
+    try {
+      // Re-authenticate user before changing password
+      const credential = EmailAuthProvider.credential(
+        currentUser.email,
+        currentPassword
+      );
+      await currentUser.reauthenticateWithCredential(credential);
+      
+      // Update password
+      await currentUser.updatePassword(newPassword);
+      
+      // Reset form
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      
+      setMessage('Şifreniz başarıyla güncellendi');
+      
+      // Clear message after 3 seconds
+      setTimeout(() => {
+        setMessage('');
+      }, 3000);
+    } catch (err) {
+      console.error('Error changing password:', err);
+      if (err.code === 'auth/wrong-password') {
+        setError('Mevcut şifre yanlış');
+      } else if (err.code === 'auth/too-many-requests') {
+        setError('Çok fazla deneme yapıldı. Lütfen daha sonra tekrar deneyin');
+      } else {
+        setError('Şifre değiştirme işlemi başarısız oldu. Lütfen tekrar deneyin');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800">Ayarlar</h1>
+          <p className="text-gray-600 mt-1">Hesap ayarlarınızı yönetin</p>
+        </div>
+        <div className="mt-4 sm:mt-0">
+          <button 
+            onClick={() => setCurrentPage('dashboard')}
+            className="px-4 py-2 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors duration-200"
+          >
+            Panele Dön
+          </button>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
+        <h2 className="text-lg font-bold text-gray-800 mb-6">Şifre Değiştir</h2>
+        
+        {message && (
+          <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-green-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <p className="text-sm font-medium text-green-800">{message}</p>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {error && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <p className="text-sm font-medium text-red-800">{error}</p>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        <form onSubmit={handleChangePassword}>
+          <div className="space-y-6">
+            <div>
+              <label className="block text-gray-700 text-sm font-medium mb-2" htmlFor="currentPassword">
+                Mevcut Şifre *
+              </label>
+              <input
+                type="password"
+                id="currentPassword"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-300 focus:border-rose-400 outline-none transition"
+                placeholder="Mevcut şifrenizi girin"
+                required
+              />
+            </div>
+            
+            <div>
+              <label className="block text-gray-700 text-sm font-medium mb-2" htmlFor="newPassword">
+                Yeni Şifre *
+              </label>
+              <input
+                type="password"
+                id="newPassword"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-300 focus:border-rose-400 outline-none transition"
+                placeholder="Yeni şifrenizi girin"
+                required
+              />
+              <p className="mt-1 text-sm text-gray-500">Şifreniz en az 6 karakter olmalıdır</p>
+            </div>
+            
+            <div>
+              <label className="block text-gray-700 text-sm font-medium mb-2" htmlFor="confirmPassword">
+                Yeni Şifre Tekrar *
+              </label>
+              <input
+                type="password"
+                id="confirmPassword"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-300 focus:border-rose-400 outline-none transition"
+                placeholder="Yeni şifrenizi tekrar girin"
+                required
+              />
+            </div>
+            
+            <div className="flex justify-end pt-4">
+              <button
+                type="submit"
+                disabled={loading}
+                className={`px-6 py-3 bg-gradient-to-r from-rose-500 to-purple-600 hover:from-rose-600 hover:to-purple-700 text-white font-medium rounded-lg shadow-sm hover:shadow-md transition-all duration-200 ${loading ? 'opacity-75 cursor-not-allowed' : ''}`}
+              >
+                {loading ? (
+                  <>
+                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Güncelleniyor...
+                  </>
+                ) : 'Şifreyi Güncelle'}
+              </button>
+            </div>
+          </div>
+        </form>
       </div>
     </div>
   );
