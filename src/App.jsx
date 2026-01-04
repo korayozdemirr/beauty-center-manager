@@ -26,6 +26,7 @@ function App() {
   const [packageTemplates, setPackageTemplates] = useState([]);
   const [showPaymentTrackingModal, setShowPaymentTrackingModal] = useState(false);
   const [selectedPaymentPlan, setSelectedPaymentPlan] = useState(null);
+  const [appointmentToEdit, setAppointmentToEdit] = useState(null);
 
 
   // Check auth state on app load
@@ -44,7 +45,7 @@ function App() {
 
     return unsubscribe;
   }, []);
-  
+
   const loadPackageTemplates = async () => {
     try {
       const templates = await getAllPackageTemplates();
@@ -53,7 +54,7 @@ function App() {
       console.error('Error loading package templates:', error);
     }
   };
-    
+
   const handlePackageSold = async () => {
     // Reload all data to ensure consistency
     loadPackageTemplates();
@@ -67,19 +68,19 @@ function App() {
         paidInstallments: updatedPaymentPlan.paidInstallments,
         status: updatedPaymentPlan.status
       });
-      
+
       // Reload customer packages to update the UI
       const packages = await getCustomerPackages(updatedPaymentPlan.customerId);
       // Note: This assumes we have a way to update the global customer packages state
       // which might require additional logic
-      
+
       alert('Ödeme başarıyla kaydedildi!');
     } catch (error) {
       console.error('Error updating payment:', error);
       alert('Ödeme kaydedilirken bir hata oluştu: ' + error.message);
     }
   };
-    
+
   // Update document title based on current page
   useEffect(() => {
     const pageTitles = {
@@ -90,7 +91,7 @@ function App() {
       'settings': 'Ayarlar - Çağla Dağ Güzellik Merkezi',
       'login': 'Giriş - Çağla Dağ Güzellik Merkezi'
     };
-    
+
     document.title = pageTitles[currentPage] || 'Çağla Dağ Güzellik Merkezi';
   }, [currentPage]);
 
@@ -110,9 +111,9 @@ function App() {
       case 'dashboard':
         return <Dashboard setCurrentPage={setCurrentPage} currentUser={currentUser} />;
       case 'customers':
-        return <Customers 
-          setCurrentPage={setCurrentPage} 
-          currentUser={currentUser} 
+        return <Customers
+          setCurrentPage={setCurrentPage}
+          currentUser={currentUser}
           setSelectedCustomer={setSelectedCustomer}
           showPackageModal={showPackageModal}
           setShowPackageModal={setShowPackageModal}
@@ -126,9 +127,19 @@ function App() {
           setSelectedPaymentPlan={setSelectedPaymentPlan}
         />;
       case 'appointments':
-        return <Appointments setCurrentPage={setCurrentPage} currentUser={currentUser} selectedCustomer={selectedCustomer} />;
+        return <Appointments
+          setCurrentPage={setCurrentPage}
+          currentUser={currentUser}
+          selectedCustomer={selectedCustomer}
+          appointmentToEdit={appointmentToEdit}
+          setAppointmentToEdit={setAppointmentToEdit}
+        />;
       case 'appointmentsList':
-        return <AppointmentsList setCurrentPage={setCurrentPage} currentUser={currentUser} />;
+        return <AppointmentsList
+          setCurrentPage={setCurrentPage}
+          currentUser={currentUser}
+          setAppointmentToEdit={setAppointmentToEdit}
+        />;
       case 'settings':
         return <Settings setCurrentPage={setCurrentPage} currentUser={currentUser} />;
       case 'packages':
@@ -157,7 +168,7 @@ function App() {
             <h1 className="text-2xl font-bold bg-gradient-to-r from-rose-500 to-purple-600 bg-clip-text text-transparent">Çağla Dağ Güzellik Merkezi</h1>
           </div>
         </header>
-        
+
         <main className="container mx-auto px-4 py-12">
           <Login setCurrentPage={setCurrentPage} />
         </main>
@@ -176,7 +187,7 @@ function App() {
         setIsMobileMenuOpen={setIsMobileMenuOpen}
         setSelectedCustomer={setSelectedCustomer}
       />
-      
+
       <main className="container mx-auto px-4 py-6">
         {renderCurrentPage()}
         {currentPage === 'customers' && (
@@ -234,9 +245,9 @@ const Login = ({ setCurrentPage }) => {
           <h2 className="text-2xl font-bold text-gray-800">Tekrar Hoş Geldiniz</h2>
           <p className="text-gray-600 mt-2">Hesabınıza giriş yapın</p>
         </div>
-        
+
         {error && <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm">{error}</div>}
-        
+
         <form onSubmit={handleLogin}>
           <div className="mb-5">
             <label className="block text-gray-700 text-sm font-medium mb-2" htmlFor="email">
@@ -259,7 +270,7 @@ const Login = ({ setCurrentPage }) => {
               />
             </div>
           </div>
-          
+
           <div className="mb-6">
             <label className="block text-gray-700 text-sm font-medium mb-2" htmlFor="password">
               Şifre
@@ -281,7 +292,7 @@ const Login = ({ setCurrentPage }) => {
               />
             </div>
           </div>
-          
+
           <button
             type="submit"
             className="w-full bg-gradient-to-r from-rose-500 to-purple-600 hover:from-rose-600 hover:to-purple-700 text-white font-medium py-3 px-4 rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
@@ -304,7 +315,7 @@ const Dashboard = ({ setCurrentPage, currentUser }) => {
 
   const [todayAppointments, setTodayAppointments] = useState([]);
   const [tomorrowAppointments, setTomorrowAppointments] = useState([]);
-  
+
   // Package Templates state
   const [showPackageForm, setShowPackageForm] = useState(false);
   const [packageTemplates, setPackageTemplates] = useState([]);
@@ -317,7 +328,7 @@ const Dashboard = ({ setCurrentPage, currentUser }) => {
     installmentCount: 1,
     active: true
   });
-  
+
   useEffect(() => {
     const loadData = async () => {
       const data = await loadDashboardData();
@@ -339,7 +350,7 @@ const Dashboard = ({ setCurrentPage, currentUser }) => {
       setLoading(true);
       const customers = await getAllCustomers();
       const appointments = await getAllAppointments();
-      
+
       // Add customer names and phone numbers to appointments
       const appointmentsWithCustomerInfo = appointments.map(appointment => {
         const customer = customers.find(c => c.id === appointment.customerId);
@@ -349,50 +360,50 @@ const Dashboard = ({ setCurrentPage, currentUser }) => {
           customerPhone: customer ? customer.phone : ''
         };
       });
-      
+
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-      
+
       const tomorrow = new Date(today);
       tomorrow.setDate(tomorrow.getDate() + 1);
-      
+
       const todayEnd = new Date(today);
       todayEnd.setHours(23, 59, 59, 999);
-      
+
       const tomorrowEnd = new Date(tomorrow);
       tomorrowEnd.setHours(23, 59, 59, 999);
-      
+
       const todayAppointments = appointmentsWithCustomerInfo.filter(app => {
         const appDate = new Date(app.date.seconds * 1000);
         return appDate >= today && appDate <= todayEnd;
       }).length;
-      
+
       const tomorrowAppointments = appointmentsWithCustomerInfo.filter(app => {
         const appDate = new Date(app.date.seconds * 1000);
         return appDate >= tomorrow && appDate <= tomorrowEnd;
       }).length;
-      
+
       const upcomingAppointments = appointmentsWithCustomerInfo.filter(app => {
         const appDate = new Date(app.date.seconds * 1000);
         const now = new Date();
         return appDate > now;
       }).length;
-      
+
       setStats({
         totalCustomers: customers.length,
         todayAppointments,
         upcomingAppointments
       });
-      
-      return { 
+
+      return {
         todayAppointments: appointmentsWithCustomerInfo.filter(app => {
           const appDate = new Date(app.date.seconds * 1000);
           return appDate >= today && appDate <= todayEnd;
-        }), 
+        }),
         tomorrowAppointments: appointmentsWithCustomerInfo.filter(app => {
           const appDate = new Date(app.date.seconds * 1000);
           return appDate >= tomorrow && appDate <= tomorrowEnd;
-        }) 
+        })
       };
     } catch (error) {
       console.error('Error loading dashboard data:', error);
@@ -403,7 +414,7 @@ const Dashboard = ({ setCurrentPage, currentUser }) => {
   };
 
   // Package Templates Functions
-  
+
   const handlePackageInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     setPackageForm(prev => ({
@@ -434,14 +445,14 @@ const Dashboard = ({ setCurrentPage, currentUser }) => {
 
   const handlePackageSubmit = async (e) => {
     e.preventDefault();
-    
+
     try {
       const packageData = {
         ...packageForm,
         installmentAmount: packageForm.totalPrice / packageForm.installmentCount,
         createdAt: serverTimestamp() // Use server timestamp
       };
-      
+
       if (editingPackage) {
         // Update existing package template
         await updatePackageTemplate(editingPackage.id, packageData);
@@ -449,7 +460,7 @@ const Dashboard = ({ setCurrentPage, currentUser }) => {
         // Create new package template
         await createPackageTemplate(packageData);
       }
-      
+
       // Reset form
       setPackageForm({
         name: '',
@@ -459,7 +470,7 @@ const Dashboard = ({ setCurrentPage, currentUser }) => {
         installmentCount: 1,
         active: true
       });
-      
+
       // Hide form and refresh package templates list
       setShowPackageForm(false);
       setEditingPackage(null);
@@ -527,7 +538,7 @@ const Dashboard = ({ setCurrentPage, currentUser }) => {
           <p className="text-gray-600 mt-1">Tekrar hoş geldiniz, {currentUser.email}</p>
         </div>
         <div className="mt-4 sm:mt-0">
-          <button 
+          <button
             onClick={() => setCurrentPage('customers')}
             className="bg-gradient-to-r from-rose-500 to-purple-600 hover:from-rose-600 hover:to-purple-700 text-white font-medium py-2 px-4 rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
           >
@@ -585,7 +596,7 @@ const Dashboard = ({ setCurrentPage, currentUser }) => {
           <h2 className="text-lg font-bold text-gray-800">Hızlı İşlemler</h2>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-          <button 
+          <button
             onClick={() => setCurrentPage('customers')}
             className="flex flex-col items-center justify-center p-6 bg-rose-50 rounded-xl hover:bg-rose-100 transition-colors duration-200"
           >
@@ -596,8 +607,8 @@ const Dashboard = ({ setCurrentPage, currentUser }) => {
             </div>
             <span className="font-medium text-gray-700">Müşteriler</span>
           </button>
-          
-          <button 
+
+          <button
             onClick={() => setCurrentPage('appointments')}
             className="flex flex-col items-center justify-center p-6 bg-purple-50 rounded-xl hover:bg-purple-100 transition-colors duration-200"
           >
@@ -608,8 +619,8 @@ const Dashboard = ({ setCurrentPage, currentUser }) => {
             </div>
             <span className="font-medium text-gray-700">Yeni Randevu</span>
           </button>
-          
-          <button 
+
+          <button
             onClick={() => setCurrentPage('appointmentsList')}
             className="flex flex-col items-center justify-center p-6 bg-amber-50 rounded-xl hover:bg-amber-100 transition-colors duration-200"
           >
@@ -620,8 +631,8 @@ const Dashboard = ({ setCurrentPage, currentUser }) => {
             </div>
             <span className="font-medium text-gray-700">Tüm Randevular</span>
           </button>
-          
-          <button 
+
+          <button
             onClick={() => setCurrentPage('settings')}
             className="flex flex-col items-center justify-center p-6 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors duration-200"
           >
@@ -633,8 +644,8 @@ const Dashboard = ({ setCurrentPage, currentUser }) => {
             </div>
             <span className="font-medium text-gray-700">Ayarlar</span>
           </button>
-          
-          <button 
+
+          <button
             onClick={() => setCurrentPage('packages')}
             className="flex flex-col items-center justify-center p-6 bg-rose-50 rounded-xl hover:bg-rose-100 transition-colors duration-200"
           >
@@ -647,19 +658,19 @@ const Dashboard = ({ setCurrentPage, currentUser }) => {
           </button>
         </div>
       </div>
-      
+
       {/* Today's Appointments */}
       <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100 mt-6">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-bold text-gray-800">Bugünün Randevuları ({todayAppointments.length})</h3>
-          <button 
+          <button
             onClick={() => setCurrentPage('appointmentsList')}
             className="text-sm text-rose-600 hover:text-rose-800 font-medium"
           >
             Tümünü Gör
           </button>
         </div>
-        
+
         {todayAppointments.length > 0 ? (
           <div className="space-y-3 max-h-60 overflow-y-auto">
             {todayAppointments.map(appointment => {
@@ -670,7 +681,7 @@ const Dashboard = ({ setCurrentPage, currentUser }) => {
                     <div className="w-3 h-3 rounded-full bg-purple-500 mr-3"></div>
                     <div>
                       <div className="font-medium text-gray-900">
-                        {appDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                        {appDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </div>
                       <div className="text-sm text-gray-500">{appointment.service}</div>
                     </div>
@@ -698,19 +709,19 @@ const Dashboard = ({ setCurrentPage, currentUser }) => {
           </div>
         )}
       </div>
-      
+
       {/* Tomorrow's Appointments */}
       <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100 mt-6">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-bold text-gray-800">Yarının Randevuları ({tomorrowAppointments.length})</h3>
-          <button 
+          <button
             onClick={() => setCurrentPage('appointmentsList')}
             className="text-sm text-rose-600 hover:text-rose-800 font-medium"
           >
             Tümünü Gör
           </button>
         </div>
-        
+
         {tomorrowAppointments.length > 0 ? (
           <div className="space-y-3 max-h-60 overflow-y-auto">
             {tomorrowAppointments.map(appointment => {
@@ -721,7 +732,7 @@ const Dashboard = ({ setCurrentPage, currentUser }) => {
                     <div className="w-3 h-3 rounded-full bg-amber-500 mr-3"></div>
                     <div>
                       <div className="font-medium text-gray-900">
-                        {appDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                        {appDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </div>
                       <div className="text-sm text-gray-500">{appointment.service}</div>
                     </div>
@@ -758,14 +769,14 @@ const Customers = ({ setCurrentPage, currentUser, setSelectedCustomer, showPacka
   const [filteredCustomers, setFilteredCustomers] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
-  
+
   // Filter customers based on search term
   useEffect(() => {
     if (searchTerm.trim() === '') {
       setFilteredCustomers(customers);
     } else {
       const term = searchTerm.toLowerCase();
-      const filtered = customers.filter(customer => 
+      const filtered = customers.filter(customer =>
         customer.name.toLowerCase().includes(term) ||
         customer.email.toLowerCase().includes(term) ||
         (customer.phone && customer.phone.includes(term))
@@ -773,10 +784,10 @@ const Customers = ({ setCurrentPage, currentUser, setSelectedCustomer, showPacka
       setFilteredCustomers(filtered);
     }
   }, [searchTerm, customers]);
-  
+
   const [showForm, setShowForm] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState(null);
-  
+
 
   const [showAppointmentsModal, setShowAppointmentsModal] = useState(false);
   const [selectedCustomerAppointments, setSelectedCustomerAppointments] = useState([]);
@@ -793,14 +804,14 @@ const Customers = ({ setCurrentPage, currentUser, setSelectedCustomer, showPacka
   useEffect(() => {
     loadCustomers();
   }, []);
-  
+
   const loadCustomers = async () => {
     try {
       setLoading(true);
       const customerList = await getAllCustomers();
       setCustomers(customerList);
       setFilteredCustomers(customerList);
-      
+
       // Load customer packages for each customer
       const packagesByCustomer = {};
       for (const customer of customerList) {
@@ -808,7 +819,7 @@ const Customers = ({ setCurrentPage, currentUser, setSelectedCustomer, showPacka
         packagesByCustomer[customer.id] = packages;
       }
       setCustomerPackages(packagesByCustomer);
-      
+
     } catch (error) {
       console.error('Error loading customers:', error);
     } finally {
@@ -874,16 +885,16 @@ const Customers = ({ setCurrentPage, currentUser, setSelectedCustomer, showPacka
     try {
       // Load all appointments
       const allAppointments = await getAllAppointments();
-      
+
       // Filter appointments for this customer that are in the future
       const now = new Date();
       const futureAppointments = allAppointments
-        .filter(appointment => 
-          appointment.customerId === customer.id && 
+        .filter(appointment =>
+          appointment.customerId === customer.id &&
           new Date(appointment.date.seconds * 1000) > now
         )
         .sort((a, b) => new Date(a.date.seconds * 1000) - new Date(b.date.seconds * 1000));
-      
+
       setSelectedCustomerAppointments(futureAppointments);
       setSelectedCustomerForAppointments(customer);
       setShowAppointmentsModal(true);
@@ -907,14 +918,14 @@ const Customers = ({ setCurrentPage, currentUser, setSelectedCustomer, showPacka
     try {
       // Get customer packages directly from the service
       const customerPackagesList = await getCustomerPackages(customer.id);
-      
+
       // Find the first customer package that has a payment plan
       const customerPackage = customerPackagesList.find(pkg => pkg.paymentPlanId);
-      
+
       if (customerPackage && customerPackage.paymentPlanId) {
         // Get the actual payment plan data
         const paymentPlan = await getPaymentPlan(customerPackage.paymentPlanId);
-        
+
         if (paymentPlan) {
           // Combine customer info with payment plan data
           const fullPaymentPlanData = {
@@ -947,20 +958,20 @@ const Customers = ({ setCurrentPage, currentUser, setSelectedCustomer, showPacka
         paidInstallments: updatedPaymentPlan.paidInstallments,
         status: updatedPaymentPlan.status
       });
-      
+
       // Reload customer packages to update the UI
       const packages = await getCustomerPackages(updatedPaymentPlan.customerId);
       setCustomerPackages(prev => ({
         ...prev,
         [updatedPaymentPlan.customerId]: packages
       }));
-      
+
       // Update the selected payment plan
       setSelectedPaymentPlan(prev => ({
         ...prev,
         ...updatedPaymentPlan
       }));
-      
+
       alert('Ödeme başarıyla kaydedildi!');
     } catch (error) {
       console.error('Error updating payment:', error);
@@ -1002,7 +1013,7 @@ const Customers = ({ setCurrentPage, currentUser, setSelectedCustomer, showPacka
               </svg>
             </div>
           </div>
-          <button 
+          <button
             onClick={() => setShowForm(true)}
             className="bg-gradient-to-r from-rose-500 to-purple-600 hover:from-rose-600 hover:to-purple-700 text-white font-medium py-2 px-4 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 flex items-center"
           >
@@ -1017,7 +1028,7 @@ const Customers = ({ setCurrentPage, currentUser, setSelectedCustomer, showPacka
       {showForm && (
         <CustomerForm
           showForm={true}
-          setShowForm={() => {}}
+          setShowForm={() => { }}
           formData={formData}
           handleInputChange={handleInputChange}
           handleSubmit={handleSubmit}
@@ -1034,7 +1045,7 @@ const Customers = ({ setCurrentPage, currentUser, setSelectedCustomer, showPacka
                 <h3 className="text-xl font-bold">
                   {selectedCustomerForAppointments?.name} için Gelecek Randevular
                 </h3>
-                <button 
+                <button
                   onClick={() => setShowAppointmentsModal(false)}
                   className="text-white hover:text-gray-200"
                 >
@@ -1044,7 +1055,7 @@ const Customers = ({ setCurrentPage, currentUser, setSelectedCustomer, showPacka
                 </button>
               </div>
             </div>
-            
+
             <div className="p-6 flex-grow overflow-y-auto">
               {selectedCustomerAppointments.length > 0 ? (
                 <div className="space-y-4">
@@ -1055,11 +1066,11 @@ const Customers = ({ setCurrentPage, currentUser, setSelectedCustomer, showPacka
                         <div className="flex justify-between items-start">
                           <div>
                             <div className="font-medium text-gray-900">
-                              {appointmentDate.toLocaleDateString('tr-TR', { 
-                                weekday: 'long', 
-                                year: 'numeric', 
-                                month: 'long', 
-                                day: 'numeric' 
+                              {appointmentDate.toLocaleDateString('tr-TR', {
+                                weekday: 'long',
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric'
                               })}
                             </div>
                             <div className="text-sm text-gray-500 mt-1">
@@ -1130,37 +1141,37 @@ const Customers = ({ setCurrentPage, currentUser, setSelectedCustomer, showPacka
                     {customer.notes || '-'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <button 
+                    <button
                       onClick={() => handleSelectForAppointment(customer)}
                       className="text-rose-600 hover:text-rose-900 mr-3"
                     >
                       Randevu
                     </button>
-                    <button 
+                    <button
                       onClick={() => showFutureAppointments(customer)}
                       className="text-blue-600 hover:text-blue-900 mr-3"
                     >
                       Bilgi
                     </button>
-                    <button 
+                    <button
                       onClick={() => showPackageSalesModal(customer)}
                       className="text-purple-600 hover:text-purple-900 mr-3"
                     >
                       Paket
                     </button>
-                    <button 
+                    <button
                       onClick={() => showCustomerPaymentTracking(customer)}
                       className="text-blue-600 hover:text-blue-900 mr-3"
                     >
                       Ödeme Takibi
                     </button>
-                    <button 
+                    <button
                       onClick={() => handleEdit(customer)}
                       className="text-indigo-600 hover:text-indigo-900 mr-3"
                     >
                       Düzenle
                     </button>
-                    <button 
+                    <button
                       onClick={() => handleDelete(customer.id)}
                       className="text-red-600 hover:text-red-900"
                     >
@@ -1195,12 +1206,12 @@ const Customers = ({ setCurrentPage, currentUser, setSelectedCustomer, showPacka
     </div>
   );
 };
- 
-const Appointments = ({ setCurrentPage, currentUser, selectedCustomer }) => {
+
+const Appointments = ({ setCurrentPage, currentUser, selectedCustomer, appointmentToEdit, setAppointmentToEdit }) => {
   const [appointments, setAppointments] = useState([]);
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showForm, setShowForm] = useState(!!selectedCustomer);
+  const [showForm, setShowForm] = useState(!!selectedCustomer || !!appointmentToEdit);
   const [showTimeSelector, setShowTimeSelector] = useState(false);
   const [editingAppointment, setEditingAppointment] = useState(null);
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -1212,13 +1223,24 @@ const Appointments = ({ setCurrentPage, currentUser, selectedCustomer }) => {
     service: '',
     notes: '',
     duration: '60',
-    laserAreas: []  // Added for laser area selection
+    laserAreas: [],  // Added for laser area selection
+    status: 'confirmed'
   });
 
   useEffect(() => {
     loadAppointments();
     loadAppointmentCustomers();
   }, []);
+
+  // Handle incoming edit request from parent
+  useEffect(() => {
+    if (appointmentToEdit) {
+      handleEdit(appointmentToEdit);
+      // Clear the prop state so it doesn't re-trigger on re-renders,
+      // but we need to keep it in local state (which handleEdit does via setEditingAppointment)
+      if (setAppointmentToEdit) setAppointmentToEdit(null);
+    }
+  }, [appointmentToEdit]);
 
   const loadAppointments = async () => {
     try {
@@ -1247,25 +1269,28 @@ const Appointments = ({ setCurrentPage, currentUser, selectedCustomer }) => {
     // If services are different, they're compatible (allow simultaneous booking)
     return service1 !== service2;
   };
-  
+
   const checkForConflicts = (newDate, durationMinutes = 60, serviceType = '') => {
     const newStart = new Date(newDate);
     const newEnd = new Date(newStart.getTime() + durationMinutes * 60000);
-    
+
     return appointments.some(appointment => {
       const existingStart = new Date(appointment.date.seconds * 1000);
       const existingDuration = appointment.duration || 60;
       const existingEnd = new Date(existingStart.getTime() + existingDuration * 60000);
-      
+
+      // Skip cancelled appointments
+      if (appointment.status === 'cancelled') return false;
+
       // Check if appointments overlap in time
       const timeOverlap = (newStart < existingEnd && newEnd > existingStart);
-      
+
       // If there's no time overlap, no conflict
       if (!timeOverlap) return false;
-      
+
       // If services are compatible, no conflict
       if (areServicesCompatible(serviceType, appointment.service)) return false;
-      
+
       // Conflict exists
       return true;
     });
@@ -1303,14 +1328,14 @@ const Appointments = ({ setCurrentPage, currentUser, selectedCustomer }) => {
     e.preventDefault();
     try {
       const appointmentDateTime = new Date(`${formData.date}T${formData.time}`);
-      
+
       // Check for conflicts
       if (checkForConflicts(appointmentDateTime, parseInt(formData.duration) || 60, formData.service)) {
         if (!window.confirm('Bu saatte zaten bir randevu planlanmış. Yine de devam etmek istiyor musunuz?')) {
           return;
         }
       }
-      
+
       // Prepare appointment data
       const appointmentData = {
         ...formData,
@@ -1318,9 +1343,10 @@ const Appointments = ({ setCurrentPage, currentUser, selectedCustomer }) => {
         customerId: formData.customerId,
         service: formData.service,
         notes: formData.notes,
-        duration: parseInt(formData.duration) || 60
+        duration: parseInt(formData.duration) || 60,
+        status: formData.status || 'confirmed'
       };
-      
+
       // Only add laserAreas to the data if the service is a laser service
       if (formData.service === 'buz lazer' || formData.service === 'alex lazer' || formData.service === 'lazer epilasyon') {
         appointmentData.laserAreas = formData.laserAreas || [];
@@ -1331,12 +1357,12 @@ const Appointments = ({ setCurrentPage, currentUser, selectedCustomer }) => {
       } else {
         await createAppointment(appointmentData);
       }
-      
-      setFormData({ customerId: selectedCustomer?.id || '', date: '', time: '', service: '', notes: '', duration: '60' });
+
+      setFormData({ customerId: selectedCustomer?.id || '', date: '', time: '', service: '', notes: '', duration: '60', status: 'confirmed' });
       setEditingAppointment(null);
       setShowForm(false);
       loadAppointments();
-      
+
       // Stay on the appointments page after creating a new appointment
       // If needed, we can add other logic here in the future
     } catch (error) {
@@ -1348,15 +1374,16 @@ const Appointments = ({ setCurrentPage, currentUser, selectedCustomer }) => {
     const dateObj = new Date(appointment.date.seconds * 1000);
     const dateStr = dateObj.toISOString().split('T')[0];
     const timeStr = dateObj.toTimeString().slice(0, 5);
-    
+
     setFormData({
       customerId: appointment.customerId,
       date: dateStr,
       time: timeStr,
       service: appointment.service || '',
       notes: appointment.notes || '',
-      duration: appointment.duration?.toString() || '60',
-      laserAreas: appointment.laserAreas || []
+      duration: appointment.duration ? appointment.duration.toString() : '60',
+      laserAreas: appointment.laserAreas || [],
+      status: appointment.status || 'confirmed'
     });
     setEditingAppointment(appointment);
     setShowForm(true);
@@ -1373,12 +1400,12 @@ const Appointments = ({ setCurrentPage, currentUser, selectedCustomer }) => {
     }
   };
 
-  const handleCancel = () => {
-    setFormData({ customerId: selectedCustomer?.id || '', date: '', time: '', service: '', notes: '', duration: '60' });
+  const handleCancelForm = () => {
+    setFormData({ customerId: selectedCustomer?.id || '', date: '', time: '', service: '', notes: '', duration: '60', status: 'confirmed' });
     setEditingAppointment(null);
     setShowForm(false);
     setSelectedDate(null);
-    
+
     // Stay on the appointments page when canceling
     // If needed, we can add other logic here in the future
   };
@@ -1432,10 +1459,10 @@ const Appointments = ({ setCurrentPage, currentUser, selectedCustomer }) => {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
     const dayDate = new Date(year, month, day);
-    
+
     // Normalize the dayDate for comparison
     const normalizedDayDate = new Date(year, month, day);
-    
+
     return appointments.filter(app => {
       const appDate = new Date(app.date.seconds * 1000);
       // Normalize appDate for comparison
@@ -1446,23 +1473,23 @@ const Appointments = ({ setCurrentPage, currentUser, selectedCustomer }) => {
 
   const handleDayClick = (day) => {
     if (!day) return;
-    
+
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
     const selectedDateObj = new Date(year, month, day);
-    
+
     // Adjust for timezone by setting time to noon to avoid DST issues
     selectedDateObj.setHours(12, 0, 0, 0);
-    
+
     setSelectedDate(selectedDateObj);
-    
+
     // Set the date in form data using local date formatting
     const formattedDate = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     setFormData(prev => ({
       ...prev,
       date: formattedDate
     }));
-    
+
     // Show time selector
     setShowTimeSelector(true);
   };
@@ -1479,14 +1506,14 @@ const Appointments = ({ setCurrentPage, currentUser, selectedCustomer }) => {
   ];
 
   // Get appointments for the selected date
-  const selectedDateAppointments = selectedDate 
+  const selectedDateAppointments = selectedDate
     ? appointments.filter(app => {
-        const appDate = new Date(app.date.seconds * 1000);
-        // Normalize both dates to avoid timezone issues
-        const normalizedAppDate = new Date(appDate.getFullYear(), appDate.getMonth(), appDate.getDate());
-        const normalizedSelectedDate = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
-        return normalizedAppDate.getTime() === normalizedSelectedDate.getTime();
-      })
+      const appDate = new Date(app.date.seconds * 1000);
+      // Normalize both dates to avoid timezone issues
+      const normalizedAppDate = new Date(appDate.getFullYear(), appDate.getMonth(), appDate.getDate());
+      const normalizedSelectedDate = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
+      return normalizedAppDate.getTime() === normalizedSelectedDate.getTime();
+    })
     : [];
 
   if (loading) {
@@ -1510,14 +1537,14 @@ const Appointments = ({ setCurrentPage, currentUser, selectedCustomer }) => {
         </div>
         <div className="mt-4 sm:mt-0 flex space-x-3">
           {!selectedCustomer && (
-            <button 
+            <button
               onClick={() => setCurrentPage('appointmentsList')}
               className="px-4 py-2 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors duration-200"
             >
               Tüm Randevular
             </button>
           )}
-          <button 
+          <button
             onClick={() => setShowForm(true)}
             className="px-4 py-2 bg-gradient-to-r from-rose-500 to-purple-600 hover:from-rose-600 hover:to-purple-700 text-white font-medium rounded-lg shadow-sm hover:shadow-md transition-all duration-200 flex items-center"
           >
@@ -1535,17 +1562,18 @@ const Appointments = ({ setCurrentPage, currentUser, selectedCustomer }) => {
         formData={formData}
         handleInputChange={handleInputChange}
         handleSubmit={handleSubmit}
-        handleCancel={handleCancel}
+        handleCancel={handleCancelForm}
         customers={customers}
         laserAreas={formData.laserAreas}
         handleLaserAreaChange={handleLaserAreaChange}
         editingAppointment={editingAppointment}
+        appointments={appointments}
         selectedCustomer={selectedCustomer}
       />
 
       <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100 mb-8">
         <div className="flex justify-between items-center mb-6">
-          <button 
+          <button
             onClick={prevMonth}
             className="p-2 rounded-full hover:bg-gray-100 text-gray-600 transition-colors duration-200"
           >
@@ -1556,7 +1584,7 @@ const Appointments = ({ setCurrentPage, currentUser, selectedCustomer }) => {
           <h3 className="text-lg font-bold text-gray-800">
             {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
           </h3>
-          <button 
+          <button
             onClick={nextMonth}
             className="p-2 rounded-full hover:bg-gray-100 text-gray-600 transition-colors duration-200"
           >
@@ -1565,7 +1593,7 @@ const Appointments = ({ setCurrentPage, currentUser, selectedCustomer }) => {
             </svg>
           </button>
         </div>
-        
+
         <div className="grid grid-cols-7 gap-1 mb-2">
           {['Paz', 'Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt'].map(day => (
             <div key={day} className="text-center text-xs font-semibold text-gray-500 py-2">
@@ -1573,50 +1601,48 @@ const Appointments = ({ setCurrentPage, currentUser, selectedCustomer }) => {
             </div>
           ))}
         </div>
-        
+
         <div className="grid grid-cols-7 gap-1">
           {days.map((day, index) => {
             const dayAppointments = day ? getAppointmentsForDay(day) : [];
-            const isToday = day && 
-              day === new Date().getDate() && 
-              currentDate.getMonth() === new Date().getMonth() && 
+            const isToday = day &&
+              day === new Date().getDate() &&
+              currentDate.getMonth() === new Date().getMonth() &&
               currentDate.getFullYear() === new Date().getFullYear();
-            const isSelected = selectedDate && 
-              day === selectedDate.getDate() && 
-              currentDate.getMonth() === selectedDate.getMonth() && 
+            const isSelected = selectedDate &&
+              day === selectedDate.getDate() &&
+              currentDate.getMonth() === selectedDate.getMonth() &&
               currentDate.getFullYear() === selectedDate.getFullYear();
-            
+
             return (
-              <div 
-                key={index} 
-                className={`min-h-20 p-1 border rounded-lg ${
-                  day 
-                    ? isSelected
-                      ? 'bg-purple-100 border-purple-300'
-                      : isToday 
-                        ? 'bg-rose-50 border-rose-200' 
-                        : 'bg-white border-gray-200'
-                    : 'bg-gray-50 border-gray-100'
-                }`}
-              onClick={() => handleDayClick(day)}
+              <div
+                key={index}
+                className={`min-h-20 p-1 border rounded-lg ${day
+                  ? isSelected
+                    ? 'bg-purple-100 border-purple-300'
+                    : isToday
+                      ? 'bg-rose-50 border-rose-200'
+                      : 'bg-white border-gray-200'
+                  : 'bg-gray-50 border-gray-100'
+                  }`}
+                onClick={() => handleDayClick(day)}
               >
                 {day && (
                   <>
-                    <div 
-                      className={`text-right pr-1 text-sm font-medium cursor-pointer ${
-                        isSelected 
-                          ? 'text-purple-700 font-bold' 
-                          : isToday 
-                            ? 'text-rose-600' 
-                            : 'text-gray-700'
-                      }`}
+                    <div
+                      className={`text-right pr-1 text-sm font-medium cursor-pointer ${isSelected
+                        ? 'text-purple-700 font-bold'
+                        : isToday
+                          ? 'text-rose-600'
+                          : 'text-gray-700'
+                        }`}
                     >
                       {day}
                     </div>
                     <div className="mt-1 space-y-1">
                       {dayAppointments.slice(0, 2).map(app => (
-                        <div 
-                          key={app.id} 
+                        <div
+                          key={app.id}
                           className="text-xs bg-purple-50 text-purple-800 p-1 rounded truncate"
                           title={`${formatDate(app.date)} - ${app.service}`}
                         >
@@ -1638,9 +1664,9 @@ const Appointments = ({ setCurrentPage, currentUser, selectedCustomer }) => {
       </div>
 
       {showTimeSelector && (
-        <TimeSlotSelector 
-          selectedDate={selectedDate} 
-          appointments={appointments} 
+        <TimeSlotSelector
+          selectedDate={selectedDate}
+          appointments={appointments}
           serviceType={formData.service}
           onSelectTime={(time) => {
             setFormData(prev => ({
@@ -1661,14 +1687,14 @@ const Appointments = ({ setCurrentPage, currentUser, selectedCustomer }) => {
         <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100 mt-6">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-lg font-bold text-gray-800">
-              {selectedDate.toLocaleDateString('tr-TR', { 
-                weekday: 'long', 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
+              {selectedDate.toLocaleDateString('tr-TR', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
               })} için Randevular
             </h3>
-            <button 
+            <button
               onClick={() => setSelectedDate(null)}
               className="text-gray-500 hover:text-gray-700"
             >
@@ -1677,7 +1703,7 @@ const Appointments = ({ setCurrentPage, currentUser, selectedCustomer }) => {
               </svg>
             </button>
           </div>
-          
+
           {selectedDateAppointments.length > 0 ? (
             <div className="space-y-3">
               {selectedDateAppointments.map(appointment => {
@@ -1688,7 +1714,7 @@ const Appointments = ({ setCurrentPage, currentUser, selectedCustomer }) => {
                       <div className="w-3 h-3 rounded-full bg-purple-500 mr-3"></div>
                       <div>
                         <div className="font-medium text-gray-900">
-                          {new Date(appointment.date.seconds * 1000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                          {new Date(appointment.date.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </div>
                         <div className="text-sm text-gray-500">{customer.name}</div>
                       </div>
@@ -1736,7 +1762,7 @@ const Appointments = ({ setCurrentPage, currentUser, selectedCustomer }) => {
                           {new Date(appointment.date.seconds * 1000).toLocaleDateString()}
                         </div>
                         <div className="text-sm text-gray-500">
-                          {new Date(appointment.date.seconds * 1000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                          {new Date(appointment.date.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -1747,13 +1773,13 @@ const Appointments = ({ setCurrentPage, currentUser, selectedCustomer }) => {
                         {appointment.service}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <button 
+                        <button
                           onClick={() => handleEdit(appointment)}
                           className="text-indigo-600 hover:text-indigo-900 mr-3"
                         >
                           Düzenle
                         </button>
-                        <button 
+                        <button
                           onClick={() => handleDelete(appointment.id)}
                           className="text-red-600 hover:text-red-900"
                         >
@@ -1803,28 +1829,28 @@ const TimeSlotSelector = ({ selectedDate, appointments, serviceType, onSelectTim
     // If services are different, they're compatible (allow simultaneous booking)
     return service1 !== service2;
   };
-  
+
   // Check if a time slot is occupied by an incompatible service
   const isTimeSlotOccupied = (time) => {
     const [hours, minutes] = time.split(':').map(Number);
     // Create a new date object to avoid modifying the original selectedDate
     const slotTime = new Date(selectedDate);
     slotTime.setHours(hours, minutes, 0, 0);
-    
+
     return appointments.some(app => {
       const appDate = new Date(app.date.seconds * 1000);
       const appDuration = app.duration || 60;
       const appEndTime = new Date(appDate.getTime() + appDuration * 60000);
-      
+
       // Check if there's time overlap
       const timeOverlap = slotTime >= appDate && slotTime < appEndTime;
-      
+
       // If there's no time overlap, slot is not occupied by this appointment
       if (!timeOverlap) return false;
-      
+
       // If services are compatible, slot is not occupied
       if (areServicesCompatible(serviceType, app.service)) return false;
-      
+
       // Slot is occupied by an incompatible service
       return true;
     });
@@ -1838,15 +1864,15 @@ const TimeSlotSelector = ({ selectedDate, appointments, serviceType, onSelectTim
         <div className="px-6 py-4 bg-gradient-to-r from-rose-500 to-purple-600 text-white">
           <h3 className="text-xl font-bold">Saat Aralığı Seçin</h3>
           <p className="text-rose-100 mt-1">
-            {selectedDate.toLocaleDateString('tr-TR', { 
-              weekday: 'long', 
-              year: 'numeric', 
-              month: 'long', 
-              day: 'numeric' 
+            {selectedDate.toLocaleDateString('tr-TR', {
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
             })}
           </p>
         </div>
-        
+
         <div className="p-6 flex-grow overflow-y-auto">
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             {timeSlots.map((time, index) => {
@@ -1856,11 +1882,10 @@ const TimeSlotSelector = ({ selectedDate, appointments, serviceType, onSelectTim
                   key={index}
                   onClick={() => !isOccupied && onSelectTime(time)}
                   disabled={isOccupied}
-                  className={`py-3 px-2 text-center rounded-lg transition-all duration-200 ${
-                    isOccupied 
-                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
-                      : 'bg-rose-50 text-rose-700 hover:bg-rose-100 hover:shadow-sm'
-                  }`}
+                  className={`py-3 px-2 text-center rounded-lg transition-all duration-200 ${isOccupied
+                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                    : 'bg-rose-50 text-rose-700 hover:bg-rose-100 hover:shadow-sm'
+                    }`}
                 >
                   <div className="font-medium">{time}</div>
                   <div className="text-xs mt-1">
@@ -1871,7 +1896,7 @@ const TimeSlotSelector = ({ selectedDate, appointments, serviceType, onSelectTim
             })}
           </div>
         </div>
-        
+
         <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end space-x-3">
           <button
             onClick={onCancel}
@@ -1885,7 +1910,7 @@ const TimeSlotSelector = ({ selectedDate, appointments, serviceType, onSelectTim
   );
 };
 
-const AppointmentsList = ({ setCurrentPage, currentUser }) => {
+const AppointmentsList = ({ setCurrentPage, currentUser, setAppointmentToEdit }) => {
   const [appointments, setAppointments] = useState([]);
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -1918,11 +1943,12 @@ const AppointmentsList = ({ setCurrentPage, currentUser }) => {
   };
 
   const handleEdit = (appointment) => {
-    // Navigate to the appointments page with the appointment data
-    // This would require passing the appointment data to the appointments page
-    console.log('Edit appointment:', appointment);
-    // For now, we'll just log it - a full implementation would require
-    // passing state between components or using a global state management solution
+    if (setAppointmentToEdit) {
+      setAppointmentToEdit(appointment);
+      setCurrentPage('appointments');
+    } else {
+      console.error('setAppointmentToEdit function is missing');
+    }
   };
 
   const handleDelete = async (appointmentId) => {
@@ -1938,7 +1964,7 @@ const AppointmentsList = ({ setCurrentPage, currentUser }) => {
 
   const getFilteredAppointments = () => {
     const now = new Date();
-    
+
     switch (filter) {
       case 'upcoming':
         return appointments.filter(app => new Date(app.date.seconds * 1000) >= now);
@@ -1973,36 +1999,33 @@ const AppointmentsList = ({ setCurrentPage, currentUser }) => {
           <div className="inline-flex rounded-md shadow-sm" role="group">
             <button
               onClick={() => setFilter('upcoming')}
-              className={`px-4 py-2 text-sm font-medium rounded-l-lg ${
-                filter === 'upcoming'
-                  ? 'bg-rose-500 text-white'
-                  : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
-              }`}
+              className={`px-4 py-2 text-sm font-medium rounded-l-lg ${filter === 'upcoming'
+                ? 'bg-rose-500 text-white'
+                : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
+                }`}
             >
               Yaklaşan
             </button>
             <button
               onClick={() => setFilter('past')}
-              className={`px-4 py-2 text-sm font-medium ${
-                filter === 'past'
-                  ? 'bg-rose-500 text-white'
-                  : 'bg-white text-gray-700 hover:bg-gray-50 border-t border-b border-gray-200'
-              }`}
+              className={`px-4 py-2 text-sm font-medium ${filter === 'past'
+                ? 'bg-rose-500 text-white'
+                : 'bg-white text-gray-700 hover:bg-gray-50 border-t border-b border-gray-200'
+                }`}
             >
               Geçmiş
             </button>
             <button
               onClick={() => setFilter('all')}
-              className={`px-4 py-2 text-sm font-medium rounded-r-lg ${
-                filter === 'all'
-                  ? 'bg-rose-500 text-white'
-                  : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
-              }`}
+              className={`px-4 py-2 text-sm font-medium rounded-r-lg ${filter === 'all'
+                ? 'bg-rose-500 text-white'
+                : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
+                }`}
             >
               Tümü
             </button>
           </div>
-          <button 
+          <button
             onClick={() => setCurrentPage('customers')}
             className="px-4 py-2 bg-gradient-to-r from-rose-500 to-purple-600 hover:from-rose-600 hover:to-purple-700 text-white font-medium rounded-lg shadow-sm hover:shadow-md transition-all duration-200 flex items-center"
           >
@@ -2020,7 +2043,7 @@ const AppointmentsList = ({ setCurrentPage, currentUser }) => {
         handleEdit={handleEdit}
         handleDelete={handleDelete}
         formatDate={(date) => date.toLocaleDateString()}
-        formatTime={(date) => date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+        formatTime={(date) => date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
         isSimpleView={true}
       />
     </div>
@@ -2037,29 +2060,29 @@ const Settings = ({ setCurrentPage, currentUser }) => {
 
   const handleChangePassword = async (e) => {
     e.preventDefault();
-    
+
     // Reset messages
     setMessage('');
     setError('');
-    
+
     // Validation
     if (newPassword !== confirmPassword) {
       setError('Yeni şifreler eşleşmiyor');
       return;
     }
-    
+
     if (newPassword.length < 6) {
       setError('Şifre en az 6 karakter olmalıdır');
       return;
     }
-    
+
     if (currentPassword === newPassword) {
       setError('Yeni şifre mevcut şifreden farklı olmalıdır');
       return;
     }
-    
+
     setLoading(true);
-    
+
     try {
       // Re-authenticate user before changing password
       const credential = EmailAuthProvider.credential(
@@ -2067,17 +2090,17 @@ const Settings = ({ setCurrentPage, currentUser }) => {
         currentPassword
       );
       await currentUser.reauthenticateWithCredential(credential);
-      
+
       // Update password
       await currentUser.updatePassword(newPassword);
-      
+
       // Reset form
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
-      
+
       setMessage('Şifreniz başarıyla güncellendi');
-      
+
       // Clear message after 3 seconds
       setTimeout(() => {
         setMessage('');
@@ -2104,7 +2127,7 @@ const Settings = ({ setCurrentPage, currentUser }) => {
           <p className="text-gray-600 mt-1">Hesap ayarlarınızı yönetin</p>
         </div>
         <div className="mt-4 sm:mt-0">
-          <button 
+          <button
             onClick={() => setCurrentPage('dashboard')}
             className="px-4 py-2 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors duration-200"
           >
@@ -2115,7 +2138,7 @@ const Settings = ({ setCurrentPage, currentUser }) => {
 
       <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
         <h2 className="text-lg font-bold text-gray-800 mb-6">Şifre Değiştir</h2>
-        
+
         {message && (
           <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
             <div className="flex">
@@ -2130,7 +2153,7 @@ const Settings = ({ setCurrentPage, currentUser }) => {
             </div>
           </div>
         )}
-        
+
         {error && (
           <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
             <div className="flex">
@@ -2145,7 +2168,7 @@ const Settings = ({ setCurrentPage, currentUser }) => {
             </div>
           </div>
         )}
-        
+
         <form onSubmit={handleChangePassword}>
           <div className="space-y-6">
             <div>
@@ -2162,7 +2185,7 @@ const Settings = ({ setCurrentPage, currentUser }) => {
                 required
               />
             </div>
-            
+
             <div>
               <label className="block text-gray-700 text-sm font-medium mb-2" htmlFor="newPassword">
                 Yeni Şifre *
@@ -2178,7 +2201,7 @@ const Settings = ({ setCurrentPage, currentUser }) => {
               />
               <p className="mt-1 text-sm text-gray-500">Şifreniz en az 6 karakter olmalıdır</p>
             </div>
-            
+
             <div>
               <label className="block text-gray-700 text-sm font-medium mb-2" htmlFor="confirmPassword">
                 Yeni Şifre Tekrar *
@@ -2193,7 +2216,7 @@ const Settings = ({ setCurrentPage, currentUser }) => {
                 required
               />
             </div>
-            
+
             <div className="flex justify-end pt-4">
               <button
                 type="submit"
@@ -2262,14 +2285,14 @@ const Packages = ({ setCurrentPage, currentUser }) => {
 
   const handlePackageSubmit = async (e) => {
     e.preventDefault();
-    
+
     try {
       const packageData = {
         ...packageForm,
         installmentAmount: packageForm.totalPrice / packageForm.installmentCount,
         createdAt: serverTimestamp() // Use server timestamp
       };
-      
+
       if (editingPackage) {
         // Update existing package template
         await updatePackageTemplate(editingPackage.id, packageData);
@@ -2277,7 +2300,7 @@ const Packages = ({ setCurrentPage, currentUser }) => {
         // Create new package template
         await createPackageTemplate(packageData);
       }
-      
+
       // Reset form
       setPackageForm({
         name: '',
@@ -2287,7 +2310,7 @@ const Packages = ({ setCurrentPage, currentUser }) => {
         installmentCount: 1,
         active: true
       });
-      
+
       // Hide form and refresh package templates list
       setShowPackageForm(false);
       setEditingPackage(null);
@@ -2356,7 +2379,7 @@ const Packages = ({ setCurrentPage, currentUser }) => {
           <p className="text-gray-600 mt-1">Lazer epilasyon paket şablonlarınızı yönetin</p>
         </div>
         <div className="mt-4 sm:mt-0">
-          <button 
+          <button
             onClick={() => setCurrentPage('dashboard')}
             className="px-4 py-2 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors duration-200"
           >
@@ -2364,7 +2387,7 @@ const Packages = ({ setCurrentPage, currentUser }) => {
           </button>
         </div>
       </div>
-      
+
       {/* Package Templates Form */}
       {showPackageForm && (
         <div className="bg-white rounded-2xl shadow-sm p-6 mb-8 border border-gray-100">
@@ -2388,7 +2411,7 @@ const Packages = ({ setCurrentPage, currentUser }) => {
                   required
                 />
               </div>
-              
+
               <div>
                 <label className="block text-gray-700 text-sm font-medium mb-2" htmlFor="totalSessions">
                   Toplam Seans
@@ -2404,7 +2427,7 @@ const Packages = ({ setCurrentPage, currentUser }) => {
                   required
                 />
               </div>
-              
+
               <div>
                 <label className="block text-gray-700 text-sm font-medium mb-2" htmlFor="totalPrice">
                   Toplam Fiyat (₺)
@@ -2421,7 +2444,7 @@ const Packages = ({ setCurrentPage, currentUser }) => {
                   required
                 />
               </div>
-              
+
               <div>
                 <label className="block text-gray-700 text-sm font-medium mb-2" htmlFor="installmentCount">
                   Taksit Sayısı
@@ -2438,7 +2461,7 @@ const Packages = ({ setCurrentPage, currentUser }) => {
                 />
               </div>
             </div>
-            
+
             <div className="mb-6">
               <label className="block text-gray-700 text-sm font-medium mb-3">
                 Lazer Uygulanacak Bölgeleri Seçin:
@@ -2461,8 +2484,8 @@ const Packages = ({ setCurrentPage, currentUser }) => {
                       onChange={() => handlePackageLaserAreaChange(area.value)}
                       className="h-4 w-4 text-rose-600 focus:ring-rose-500 border-gray-300 rounded"
                     />
-                    <label 
-                      htmlFor={`package_laser_${area.value}`} 
+                    <label
+                      htmlFor={`package_laser_${area.value}`}
                       className="ml-2 block text-sm text-gray-700"
                     >
                       {area.label}
@@ -2471,7 +2494,7 @@ const Packages = ({ setCurrentPage, currentUser }) => {
                 ))}
               </div>
             </div>
-            
+
             <div className="flex items-center mb-6">
               <input
                 type="checkbox"
@@ -2485,7 +2508,7 @@ const Packages = ({ setCurrentPage, currentUser }) => {
                 Aktif
               </label>
             </div>
-            
+
             <div className="flex justify-end space-x-3">
               <button
                 type="button"
@@ -2515,13 +2538,13 @@ const Packages = ({ setCurrentPage, currentUser }) => {
           </form>
         </div>
       )}
-      
+
       <div className="flex justify-between items-center mb-6">
         <div>
           <h2 className="text-lg font-bold text-gray-800">Paket Şablonları</h2>
           <p className="text-gray-600 text-sm">Toplam {packageTemplates.length} paket şablonu</p>
         </div>
-        <button 
+        <button
           onClick={() => {
             setPackageForm({
               name: '',
@@ -2542,7 +2565,7 @@ const Packages = ({ setCurrentPage, currentUser }) => {
           Yeni Paket
         </button>
       </div>
-      
+
       {/* Package Templates List */}
       <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
         <div className="overflow-x-auto">
@@ -2576,26 +2599,25 @@ const Packages = ({ setCurrentPage, currentUser }) => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">
-                        {template.laserAreas && template.laserAreas.length > 0 
+                        {template.laserAreas && template.laserAreas.length > 0
                           ? template.laserAreas.map(area => {
-                              const areaLabels = {
-                                'yuz': 'Yüz',
-                                'koltuk_alti': 'Koltuk Altı', 
-                                'kol': 'Kol',
-                                'bacak': 'Bacak',
-                                'bikini': 'Bikini',
-                                'sirt': 'Sırt',
-                                'gogus': 'Göğüs'
-                              };
-                              return areaLabels[area] || area;
-                            }).join(', ')
+                            const areaLabels = {
+                              'yuz': 'Yüz',
+                              'koltuk_alti': 'Koltuk Altı',
+                              'kol': 'Kol',
+                              'bacak': 'Bacak',
+                              'bikini': 'Bikini',
+                              'sirt': 'Sırt',
+                              'gogus': 'Göğüs'
+                            };
+                            return areaLabels[area] || area;
+                          }).join(', ')
                           : 'Belirtilmemiş'}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        template.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                      }`}>
+                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${template.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                        }`}>
                         {template.active ? 'Aktif' : 'Pasif'}
                       </span>
                     </td>
