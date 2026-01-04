@@ -1,8 +1,17 @@
 import { useState, useEffect } from 'react';
 import { auth } from './firebase/init';
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged, EmailAuthProvider } from 'firebase/auth';
+import { serverTimestamp } from 'firebase/firestore';
 import { getAllCustomers, createCustomer, updateCustomer, deleteCustomer } from './services/customerService';
 import { getAllAppointments, createAppointment, updateAppointment, deleteAppointment } from './services/appointmentService';
+import { getAllPackageTemplates, createPackageTemplate, updatePackageTemplate, deletePackageTemplateById } from './services/packageService';
+import { getCustomerPackages } from './services/customerPackageService';
+import { getPaymentPlans } from './services/paymentPlanService';
+import AppointmentForm from './components/AppointmentForm';
+import CustomerForm from './components/CustomerForm';
+import AppointmentList from './components/AppointmentList';
+import Header from './components/Header';
+import CustomerPackageModal from './components/CustomerPackageModal';
 import './App.css';
 
 function App() {
@@ -11,12 +20,18 @@ function App() {
   const [currentPage, setCurrentPage] = useState('dashboard');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
+  const [showPackageModal, setShowPackageModal] = useState(false);
+  const [selectedCustomerForPackage, setSelectedCustomerForPackage] = useState(null);
+  const [packageTemplates, setPackageTemplates] = useState([]);
+
 
   // Check auth state on app load
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
         setCurrentUser(user);
+        // Load package templates when user is authenticated
+        loadPackageTemplates();
       } else {
         setCurrentUser(null);
         setCurrentPage('login');
@@ -26,7 +41,21 @@ function App() {
 
     return unsubscribe;
   }, []);
-
+  
+  const loadPackageTemplates = async () => {
+    try {
+      const templates = await getAllPackageTemplates();
+      setPackageTemplates(templates);
+    } catch (error) {
+      console.error('Error loading package templates:', error);
+    }
+  };
+    
+  const handlePackageSold = async () => {
+    // Reload all data to ensure consistency
+    loadPackageTemplates();
+  };
+    
   // Update document title based on current page
   useEffect(() => {
     const pageTitles = {
@@ -57,13 +86,25 @@ function App() {
       case 'dashboard':
         return <Dashboard setCurrentPage={setCurrentPage} currentUser={currentUser} />;
       case 'customers':
-        return <Customers setCurrentPage={setCurrentPage} currentUser={currentUser} setSelectedCustomer={setSelectedCustomer} />;
+        return <Customers 
+          setCurrentPage={setCurrentPage} 
+          currentUser={currentUser} 
+          setSelectedCustomer={setSelectedCustomer}
+          showPackageModal={showPackageModal}
+          setShowPackageModal={setShowPackageModal}
+          selectedCustomerForPackage={selectedCustomerForPackage}
+          setSelectedCustomerForPackage={setSelectedCustomerForPackage}
+          packageTemplates={packageTemplates}
+          handlePackageSold={handlePackageSold}
+        />;
       case 'appointments':
         return <Appointments setCurrentPage={setCurrentPage} currentUser={currentUser} selectedCustomer={selectedCustomer} />;
       case 'appointmentsList':
         return <AppointmentsList setCurrentPage={setCurrentPage} currentUser={currentUser} />;
       case 'settings':
         return <Settings setCurrentPage={setCurrentPage} currentUser={currentUser} />;
+      case 'packages':
+        return <Packages setCurrentPage={setCurrentPage} currentUser={currentUser} />;
       case 'login':
       default:
         return <Login setCurrentPage={setCurrentPage} />;
@@ -98,123 +139,30 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-rose-50 to-purple-50">
-      <header className="bg-white/80 backdrop-blur-sm shadow-sm sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-rose-500 to-purple-600 bg-clip-text text-transparent">Çağla Dağ Güzellik Merkezi</h1>
-          
-          <button 
-            className="md:hidden text-rose-600"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
-          
-          <nav className="hidden md:flex space-x-1">
-            <button 
-              onClick={() => {setCurrentPage('dashboard'); setIsMobileMenuOpen(false); setSelectedCustomer(null);}}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center ${
-                currentPage === 'dashboard' 
-                  ? 'bg-rose-100 text-rose-700 shadow-sm' 
-                  : 'text-rose-600 hover:bg-rose-50'
-              }`}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-              </svg>
-              Panel
-            </button>
-            <button 
-              onClick={() => {setCurrentPage('customers'); setIsMobileMenuOpen(false); setSelectedCustomer(null);}}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center ${
-                currentPage === 'customers' 
-                  ? 'bg-rose-100 text-rose-700 shadow-sm' 
-                  : 'text-rose-600 hover:bg-rose-50'
-              }`}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-              </svg>
-              Müşteriler
-            </button>
-            <button 
-              onClick={() => {setCurrentPage('appointmentsList'); setIsMobileMenuOpen(false); setSelectedCustomer(null);}}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center ${
-                currentPage === 'appointmentsList' 
-                  ? 'bg-rose-100 text-rose-700 shadow-sm' 
-                  : 'text-rose-600 hover:bg-rose-50'
-              }`}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-              Tüm Randevular
-            </button>
-            <button 
-              onClick={handleLogout}
-              className="px-4 py-2 rounded-lg text-sm font-medium text-rose-600 hover:bg-rose-50 transition-all duration-200"
-            >
-              Çıkış
-            </button>
-          </nav>
-        </div>
-        
-        {isMobileMenuOpen && (
-          <div className="md:hidden bg-white/90 backdrop-blur-sm border-t border-rose-100">
-            <div className="container mx-auto px-4 py-3 flex flex-col space-y-2">
-              <button 
-                onClick={() => {setCurrentPage('dashboard'); setIsMobileMenuOpen(false); setSelectedCustomer(null);}}
-                className={`px-4 py-2 rounded-lg text-left font-medium flex items-center ${
-                  currentPage === 'dashboard' 
-                    ? 'bg-rose-100 text-rose-700' 
-                    : 'text-rose-600'
-                }`}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                </svg>
-                Panel
-              </button>
-              <button 
-                onClick={() => {setCurrentPage('customers'); setIsMobileMenuOpen(false); setSelectedCustomer(null);}}
-                className={`px-4 py-2 rounded-lg text-left font-medium flex items-center ${
-                  currentPage === 'customers' 
-                    ? 'bg-rose-100 text-rose-700' 
-                    : 'text-rose-600'
-                }`}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
-                Müşteriler
-              </button>
-              <button 
-                onClick={() => {setCurrentPage('appointmentsList'); setIsMobileMenuOpen(false); setSelectedCustomer(null);}}
-                className={`px-4 py-2 rounded-lg text-left font-medium flex items-center ${
-                  currentPage === 'appointmentsList' 
-                    ? 'bg-rose-100 text-rose-700' 
-                    : 'text-rose-600'
-                }`}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-                Tüm Randevular
-              </button>
-              <button 
-                onClick={handleLogout}
-                className="px-4 py-2 rounded-lg text-left font-medium text-rose-600"
-              >
-                Çıkış
-              </button>
-            </div>
-          </div>
-        )}
-      </header>
+      <Header
+        currentPage={currentPage}
+        setCurrentPage={setCurrentPage}
+        currentUser={currentUser}
+        handleLogout={handleLogout}
+        isMobileMenuOpen={isMobileMenuOpen}
+        setIsMobileMenuOpen={setIsMobileMenuOpen}
+        setSelectedCustomer={setSelectedCustomer}
+      />
       
       <main className="container mx-auto px-4 py-6">
         {renderCurrentPage()}
+        {currentPage === 'customers' && (
+          <CustomerPackageModal
+            customer={selectedCustomerForPackage}
+            isOpen={showPackageModal}
+            onClose={() => {
+              setShowPackageModal(false);
+              setSelectedCustomerForPackage(null);
+            }}
+            onPackageSold={handlePackageSold}
+            packageTemplates={packageTemplates}
+          />
+        )}
       </main>
     </div>
   );
@@ -319,6 +267,19 @@ const Dashboard = ({ setCurrentPage, currentUser }) => {
   const [todayAppointments, setTodayAppointments] = useState([]);
   const [tomorrowAppointments, setTomorrowAppointments] = useState([]);
   
+  // Package Templates state
+  const [showPackageForm, setShowPackageForm] = useState(false);
+  const [packageTemplates, setPackageTemplates] = useState([]);
+  const [editingPackage, setEditingPackage] = useState(null);
+  const [packageForm, setPackageForm] = useState({
+    name: '',
+    laserAreas: [],
+    totalSessions: 1,
+    totalPrice: 0,
+    installmentCount: 1,
+    active: true
+  });
+  
   useEffect(() => {
     const loadData = async () => {
       const data = await loadDashboardData();
@@ -402,6 +363,113 @@ const Dashboard = ({ setCurrentPage, currentUser }) => {
       setLoading(false);
     }
   };
+
+  // Package Templates Functions
+  
+  const handlePackageInputChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setPackageForm(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : type === 'number' ? Number(value) : value
+    }));
+  };
+
+  // Handle laser area selection for package templates
+  const handlePackageLaserAreaChange = (area) => {
+    setPackageForm(prev => {
+      const currentAreas = prev.laserAreas || [];
+      if (currentAreas.includes(area)) {
+        // Remove area if already selected
+        return {
+          ...prev,
+          laserAreas: currentAreas.filter(a => a !== area)
+        };
+      } else {
+        // Add area if not selected
+        return {
+          ...prev,
+          laserAreas: [...currentAreas, area]
+        };
+      }
+    });
+  };
+
+  const handlePackageSubmit = async (e) => {
+    e.preventDefault();
+    
+    try {
+      const packageData = {
+        ...packageForm,
+        installmentAmount: packageForm.totalPrice / packageForm.installmentCount,
+        createdAt: serverTimestamp() // Use server timestamp
+      };
+      
+      if (editingPackage) {
+        // Update existing package template
+        await updatePackageTemplate(editingPackage.id, packageData);
+      } else {
+        // Create new package template
+        await createPackageTemplate(packageData);
+      }
+      
+      // Reset form
+      setPackageForm({
+        name: '',
+        laserAreas: [],
+        totalSessions: 1,
+        totalPrice: 0,
+        installmentCount: 1,
+        active: true
+      });
+      
+      // Hide form and refresh package templates list
+      setShowPackageForm(false);
+      setEditingPackage(null);
+      loadPackageTemplates();
+    } catch (error) {
+      console.error('Error saving package template:', error);
+      alert('Paket şablonu kaydedilirken bir hata oluştu: ' + error.message);
+    }
+  };
+
+  const loadPackageTemplates = async () => {
+    try {
+      const templates = await getAllPackageTemplates();
+      setPackageTemplates(templates);
+    } catch (error) {
+      console.error('Error loading package templates:', error);
+    }
+  };
+
+  const editPackageTemplate = (template) => {
+    setPackageForm({
+      name: template.name,
+      laserAreas: template.laserAreas || [],
+      totalSessions: template.totalSessions,
+      totalPrice: template.totalPrice,
+      installmentCount: template.installmentCount,
+      active: template.active
+    });
+    setEditingPackage(template);
+    setShowPackageForm(true);
+  };
+
+  const deletePackageTemplate = async (id) => {
+    if (window.confirm('Bu paket şablonunu silmek istediğinizden emin misiniz?')) {
+      try {
+        await deletePackageTemplateById(id);
+        loadPackageTemplates();
+      } catch (error) {
+        console.error('Error deleting package template:', error);
+        alert('Paket şablonu silinirken bir hata oluştu: ' + error.message);
+      }
+    }
+  };
+
+  // Load package templates when component mounts
+  useEffect(() => {
+    loadPackageTemplates();
+  }, []);
 
   if (loading) {
     return (
@@ -527,6 +595,18 @@ const Dashboard = ({ setCurrentPage, currentUser }) => {
             </div>
             <span className="font-medium text-gray-700">Ayarlar</span>
           </button>
+          
+          <button 
+            onClick={() => setCurrentPage('packages')}
+            className="flex flex-col items-center justify-center p-6 bg-rose-50 rounded-xl hover:bg-rose-100 transition-colors duration-200"
+          >
+            <div className="w-12 h-12 bg-rose-100 rounded-full flex items-center justify-center mb-3">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-rose-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+              </svg>
+            </div>
+            <span className="font-medium text-gray-700">Paketler</span>
+          </button>
         </div>
       </div>
       
@@ -635,7 +715,7 @@ const Dashboard = ({ setCurrentPage, currentUser }) => {
   );
 };
 
-const Customers = ({ setCurrentPage, currentUser, setSelectedCustomer }) => {
+const Customers = ({ setCurrentPage, currentUser, setSelectedCustomer, showPackageModal, setShowPackageModal, selectedCustomerForPackage, setSelectedCustomerForPackage, packageTemplates, handlePackageSold }) => {
   const [customers, setCustomers] = useState([]);
   const [filteredCustomers, setFilteredCustomers] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -645,10 +725,12 @@ const Customers = ({ setCurrentPage, currentUser, setSelectedCustomer }) => {
   const [showAppointmentsModal, setShowAppointmentsModal] = useState(false);
   const [selectedCustomerAppointments, setSelectedCustomerAppointments] = useState([]);
   const [selectedCustomerForAppointments, setSelectedCustomerForAppointments] = useState(null);
+  const [customerPackages, setCustomerPackages] = useState({});
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     phone: '',
+    birthDate: '',
     notes: ''
   });
 
@@ -659,9 +741,23 @@ const Customers = ({ setCurrentPage, currentUser, setSelectedCustomer }) => {
   const loadCustomers = async () => {
     try {
       setLoading(true);
-      const customerList = await getAllCustomers();
+      const [customerList, templateList] = await Promise.all([
+        getAllCustomers(),
+        getAllPackageTemplates()
+      ]);
+      
       setCustomers(customerList);
       setFilteredCustomers(customerList);
+      setPackageTemplates(templateList);
+      
+      // Load customer packages for each customer
+      const packagesByCustomer = {};
+      for (const customer of customerList) {
+        const packages = await getCustomerPackages(customer.id);
+        packagesByCustomer[customer.id] = packages;
+      }
+      setCustomerPackages(packagesByCustomer);
+      
     } catch (error) {
       console.error('Error loading customers:', error);
     } finally {
@@ -714,6 +810,7 @@ const Customers = ({ setCurrentPage, currentUser, setSelectedCustomer }) => {
       name: customer.name,
       email: customer.email,
       phone: customer.phone || '',
+      birthDate: customer.birthDate || '',
       notes: customer.notes || ''
     });
     setEditingCustomer(customer);
@@ -765,6 +862,13 @@ const Customers = ({ setCurrentPage, currentUser, setSelectedCustomer }) => {
     setShowForm(false);
   };
 
+  const showPackageSalesModal = (customer) => {
+    setSelectedCustomerForPackage(customer);
+    setShowPackageModal(true);
+  };
+
+
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -810,91 +914,16 @@ const Customers = ({ setCurrentPage, currentUser, setSelectedCustomer }) => {
       </div>
 
       {showForm && (
-        <div className="bg-white rounded-2xl shadow-sm p-6 mb-8 border border-gray-100">
-          <h2 className="text-xl font-bold text-gray-800 mb-6">
-            {editingCustomer ? 'Müşteriyi Düzenle' : 'Yeni Müşteri Ekle'}
-          </h2>
-          <form onSubmit={handleSubmit}>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-              <div>
-                <label className="block text-gray-700 text-sm font-medium mb-2" htmlFor="name">
-                  Ad Soyad *
-                </label>
-                <input
-                  type="text"
-                  id="name"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-300 focus:border-rose-400 outline-none transition"
-                  placeholder="Jane Smith"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-gray-700 text-sm font-medium mb-2" htmlFor="email">
-                  E-posta
-                </label>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-300 focus:border-rose-400 outline-none transition"
-                  placeholder="jane@ornek.com"
-      
-                />
-              </div>
-              <div>
-                <label className="block text-gray-700 text-sm font-medium mb-2" htmlFor="phone">
-                  Telefon Numarası *
-                </label>
-                <input
-                  type="tel"
-                  id="phone"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-300 focus:border-rose-400 outline-none transition"
-                  placeholder="(555) 123-4567"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-gray-700 text-sm font-medium mb-2" htmlFor="notes">
-                  Notlar
-                </label>
-                <input
-                  type="text"
-                  id="notes"
-                  name="notes"
-                  value={formData.notes}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-300 focus:border-rose-400 outline-none transition"
-                  placeholder="Özel istekler veya notlar"
-                />
-              </div>
-            </div>
-            <div className="flex justify-end space-x-3">
-              <button
-                type="button"
-                onClick={handleCancel}
-                className="px-5 py-2.5 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors duration-200"
-              >
-                İptal
-              </button>
-              <button
-                type="submit"
-                className="px-5 py-2.5 bg-gradient-to-r from-rose-500 to-purple-600 hover:from-rose-600 hover:to-purple-700 text-white font-medium rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
-              >
-                {editingCustomer ? 'Müşteriyi Güncelle' : 'Müşteri Ekle'}
-              </button>
-            </div>
-          </form>
-        </div>
+        <CustomerForm
+          showForm={true}
+          setShowForm={() => {}}
+          formData={formData}
+          handleInputChange={handleInputChange}
+          handleSubmit={handleSubmit}
+          handleCancel={handleCancel}
+          editingCustomer={editingCustomer}
+        />
       )}
-
       {/* Future Appointments Modal */}
       {showAppointmentsModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -967,6 +996,7 @@ const Customers = ({ setCurrentPage, currentUser, setSelectedCustomer }) => {
               <tr>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Müşteri</th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">İletişim</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Doğum Tarihi</th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Notlar</th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">İşlemler</th>
               </tr>
@@ -990,6 +1020,11 @@ const Customers = ({ setCurrentPage, currentUser, setSelectedCustomer }) => {
                     <div className="text-sm text-gray-900">{customer.email}</div>
                     <div className="text-sm text-gray-500">{customer.phone || '-'}</div>
                   </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">
+                      {customer.birthDate ? new Date(customer.birthDate).toLocaleDateString('tr-TR') : '-'}
+                    </div>
+                  </td>
                   <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
                     {customer.notes || '-'}
                   </td>
@@ -1005,6 +1040,12 @@ const Customers = ({ setCurrentPage, currentUser, setSelectedCustomer }) => {
                       className="text-blue-600 hover:text-blue-900 mr-3"
                     >
                       Bilgi
+                    </button>
+                    <button 
+                      onClick={() => showPackageSalesModal(customer)}
+                      className="text-purple-600 hover:text-purple-900 mr-3"
+                    >
+                      Paket
                     </button>
                     <button 
                       onClick={() => handleEdit(customer)}
@@ -1023,7 +1064,7 @@ const Customers = ({ setCurrentPage, currentUser, setSelectedCustomer }) => {
               ))}
               {filteredCustomers.length === 0 && (
                 <tr>
-                  <td colSpan="4" className="px-6 py-12 text-center">
+                  <td colSpan="5" className="px-6 py-12 text-center">
                     <div className="flex flex-col items-center justify-center">
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-gray-400 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -1047,7 +1088,7 @@ const Customers = ({ setCurrentPage, currentUser, setSelectedCustomer }) => {
     </div>
   );
 };
-
+ 
 const Appointments = ({ setCurrentPage, currentUser, selectedCustomer }) => {
   const [appointments, setAppointments] = useState([]);
   const [customers, setCustomers] = useState([]);
@@ -1063,7 +1104,8 @@ const Appointments = ({ setCurrentPage, currentUser, selectedCustomer }) => {
     time: '',
     service: '',
     notes: '',
-    duration: '60'
+    duration: '60',
+    laserAreas: []  // Added for laser area selection
   });
 
   useEffect(() => {
@@ -1130,6 +1172,26 @@ const Appointments = ({ setCurrentPage, currentUser, selectedCustomer }) => {
     }));
   };
 
+  // Handle laser area selection
+  const handleLaserAreaChange = (area) => {
+    setFormData(prev => {
+      const currentAreas = prev.laserAreas || [];
+      if (currentAreas.includes(area)) {
+        // Remove area if already selected
+        return {
+          ...prev,
+          laserAreas: currentAreas.filter(a => a !== area)
+        };
+      } else {
+        // Add area if not selected
+        return {
+          ...prev,
+          laserAreas: [...currentAreas, area]
+        };
+      }
+    });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -1142,6 +1204,7 @@ const Appointments = ({ setCurrentPage, currentUser, selectedCustomer }) => {
         }
       }
       
+      // Prepare appointment data
       const appointmentData = {
         ...formData,
         date: appointmentDateTime,
@@ -1150,6 +1213,11 @@ const Appointments = ({ setCurrentPage, currentUser, selectedCustomer }) => {
         notes: formData.notes,
         duration: parseInt(formData.duration) || 60
       };
+      
+      // Only add laserAreas to the data if the service is a laser service
+      if (formData.service === 'buz lazer' || formData.service === 'alex lazer' || formData.service === 'lazer epilasyon') {
+        appointmentData.laserAreas = formData.laserAreas || [];
+      }
 
       if (editingAppointment) {
         await updateAppointment(editingAppointment.id, appointmentData);
@@ -1180,7 +1248,8 @@ const Appointments = ({ setCurrentPage, currentUser, selectedCustomer }) => {
       time: timeStr,
       service: appointment.service || '',
       notes: appointment.notes || '',
-      duration: appointment.duration?.toString() || '60'
+      duration: appointment.duration?.toString() || '60',
+      laserAreas: appointment.laserAreas || []
     });
     setEditingAppointment(appointment);
     setShowForm(true);
@@ -1353,156 +1422,19 @@ const Appointments = ({ setCurrentPage, currentUser, selectedCustomer }) => {
         </div>
       </div>
 
-      {showForm && (
-        <div className="bg-white rounded-2xl shadow-sm p-6 mb-8 border border-gray-100">
-          <h2 className="text-xl font-bold text-gray-800 mb-6">
-            {editingAppointment ? 'Randevuyu Düzenle' : 'Yeni Randevu'}
-          </h2>
-          <form onSubmit={handleSubmit}>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-              {!selectedCustomer && (
-                <div>
-                  <label className="block text-gray-700 text-sm font-medium mb-2" htmlFor="customerId">
-                    Müşteri *
-                  </label>
-                  <select
-                    id="customerId"
-                    name="customerId"
-                    value={formData.customerId}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-300 focus:border-rose-400 outline-none transition"
-                    required
-                  >
-                    <option value="">Bir müşteri seçin</option>
-                    {customers.map(customer => (
-                      <option key={customer.id} value={customer.id}>
-                        {customer.name} ({customer.phone || 'Telefon yok'})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-              {selectedCustomer && (
-                <div>
-                  <label className="block text-gray-700 text-sm font-medium mb-2">
-                    Seçilen Müşteri
-                  </label>
-                  <div className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg">
-                    <div className="flex items-center">
-                      <div className="flex-shrink-0 h-8 w-8 bg-gradient-to-r from-rose-400 to-purple-500 rounded-full flex items-center justify-center">
-                        <span className="text-white text-xs font-medium">
-                          {selectedCustomer.name.charAt(0).toUpperCase()}
-                        </span>
-                      </div>
-                      <div className="ml-3">
-                        <div className="text-sm font-medium text-gray-900">{selectedCustomer.name}</div>
-                        <div className="text-xs text-gray-500">{selectedCustomer.phone || 'Telefon yok'}</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-              <div>
-                <label className="block text-gray-700 text-sm font-medium mb-2" htmlFor="service">
-                  Hizmet *
-                </label>
-                <select
-                  id="service"
-                  name="service"
-                  value={formData.service}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-300 focus:border-rose-400 outline-none transition"
-                  required
-                >
-                  <option value="">Hizmet Seçin</option>
-                  <option value="buz lazer">Buz Lazer</option>
-                  <option value="alex lazer">Alex Lazer</option>
-                  <option value="cilt bakımı">Cilt Bakımı</option>
-                  <option value="nail art">Nail Art</option>
-                  <option value="yağ yakımı">Yağ Yakımı</option>
-                </select>
-              </div>
-              
-              <div>
-                <label className="block text-gray-700 text-sm font-medium mb-2" htmlFor="duration">
-                  Süre (dakika) *
-                </label>
-                <select
-                  id="duration"
-                  name="duration"
-                  value={formData.duration || '60'}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-300 focus:border-rose-400 outline-none transition"
-                  required
-                >
-                  <option value="30">30 dakika</option>
-                  <option value="60">60 dakika</option>
-                  <option value="90">90 dakika</option>
-                  <option value="120">120 dakika</option>
-                </select>
-              </div>
-              
-              <div>
-                <label className="block text-gray-700 text-sm font-medium mb-2" htmlFor="date">
-                  Tarih *
-                </label>
-                <input
-                  type="date"
-                  id="date"
-                  name="date"
-                  value={formData.date}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-300 focus:border-rose-400 outline-none transition"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-gray-700 text-sm font-medium mb-2" htmlFor="time">
-                  Saat *
-                </label>
-                <input
-                  type="time"
-                  id="time"
-                  name="time"
-                  value={formData.time}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-300 focus:border-rose-400 outline-none transition"
-                  required
-                />
-              </div>
-              <div className="md:col-span-2">
-                <label className="block text-gray-700 text-sm font-medium mb-2" htmlFor="notes">
-                  Notlar
-                </label>
-                <textarea
-                  id="notes"
-                  name="notes"
-                  value={formData.notes}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-300 focus:border-rose-400 outline-none transition"
-                  placeholder="Özel istekler veya notlar"
-                  rows="3"
-                />
-              </div>
-            </div>
-            <div className="flex justify-end space-x-3">
-              <button
-                type="button"
-                onClick={handleCancel}
-                className="px-5 py-2.5 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors duration-200"
-              >
-                İptal
-              </button>
-              <button
-                type="submit"
-                className="px-5 py-2.5 bg-gradient-to-r from-rose-500 to-purple-600 hover:from-rose-600 hover:to-purple-700 text-white font-medium rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
-              >
-                {editingAppointment ? 'Randevuyu Güncelle' : 'Randevu Oluştur'}
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
+      <AppointmentForm
+        showForm={showForm}
+        setShowForm={setShowForm}
+        formData={formData}
+        handleInputChange={handleInputChange}
+        handleSubmit={handleSubmit}
+        handleCancel={handleCancel}
+        customers={customers}
+        laserAreas={formData.laserAreas}
+        handleLaserAreaChange={handleLaserAreaChange}
+        editingAppointment={editingAppointment}
+        selectedCustomer={selectedCustomer}
+      />
 
       <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100 mb-8">
         <div className="flex justify-between items-center mb-6">
@@ -1975,93 +1907,15 @@ const AppointmentsList = ({ setCurrentPage, currentUser }) => {
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tarih & Saat</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Müşteri</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hizmet</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Durum</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">İşlemler</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {sortedAppointments.map((appointment) => {
-                const customer = customers.find(c => c.id === appointment.customerId) || { name: 'Bilinmeyen' };
-                const appointmentDate = new Date(appointment.date.seconds * 1000);
-                                const isPast = appointmentDate < new Date();
-                return (
-                  <tr key={appointment.id} className="hover:bg-gray-50 transition-colors duration-150">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">
-                        {new Date(appointment.date.seconds * 1000).toLocaleDateString()}
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        {new Date(appointment.date.seconds * 1000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">{customer.name}</div>
-                      <div className="text-sm text-gray-500">{customer.phone || 'Telefon yok'}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {appointment.service}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2.5 py-0.5 text-xs font-medium rounded-full ${
-                        isPast 
-                          ? 'bg-gray-100 text-gray-800' 
-                          : 'bg-green-100 text-green-800'
-                      }`}>
-                        {isPast ? 'Geçmiş' : 'Yaklaşan'}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <button 
-                        onClick={() => {
-                          // Since we can't easily pass the appointment data to the other component,
-                          // we'll just show an alert for now
-                          alert('Düzenleme burada uygulanacaktır. Tam bir uygulamada, bu düzenleme formunu açacaktır.');
-                        }}
-                        className="text-indigo-600 hover:text-indigo-900 mr-3"
-                      >
-                        Düzenle
-                      </button>
-                      <button 
-                        onClick={() => handleDelete(appointment.id)}
-                        className="text-red-600 hover:text-red-900"
-                      >
-                        Sil
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
-              {sortedAppointments.length === 0 && (
-                <tr>
-                  <td colSpan="5" className="px-6 py-12 text-center">
-                    <div className="flex flex-col items-center justify-center">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-gray-400 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
-                      <h3 className="text-lg font-medium text-gray-900 mb-1">Randevu bulunamadı</h3>
-                      <p className="text-gray-500">Başlamak için yeni bir randevu planlayın.</p>
-                      <button
-                        onClick={() => setCurrentPage('customers')}
-                        className="mt-4 inline-flex items-center px-4 py-2 bg-gradient-to-r from-rose-500 to-purple-600 hover:from-rose-600 hover:to-purple-700 text-white font-medium rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
-                      >
-                        Randevu Oluştur
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <AppointmentList
+        appointments={sortedAppointments}
+        customers={customers}
+        handleEdit={handleEdit}
+        handleDelete={handleDelete}
+        formatDate={(date) => date.toLocaleDateString()}
+        formatTime={(date) => date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+        isSimpleView={true}
+      />
     </div>
   );
 };
@@ -2252,6 +2106,441 @@ const Settings = ({ setCurrentPage, currentUser }) => {
             </div>
           </div>
         </form>
+      </div>
+    </div>
+  );
+};
+
+const Packages = ({ setCurrentPage, currentUser }) => {
+  const [packageTemplates, setPackageTemplates] = useState([]);
+  const [showPackageForm, setShowPackageForm] = useState(false);
+  const [editingPackage, setEditingPackage] = useState(null);
+  const [packageForm, setPackageForm] = useState({
+    name: '',
+    laserAreas: [],
+    totalSessions: 1,
+    totalPrice: 0,
+    installmentCount: 1,
+    active: true
+  });
+  const [loading, setLoading] = useState(true);
+
+  const handlePackageInputChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setPackageForm(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : type === 'number' ? Number(value) : value
+    }));
+  };
+
+  // Handle laser area selection for package templates
+  const handlePackageLaserAreaChange = (area) => {
+    setPackageForm(prev => {
+      const currentAreas = prev.laserAreas || [];
+      if (currentAreas.includes(area)) {
+        // Remove area if already selected
+        return {
+          ...prev,
+          laserAreas: currentAreas.filter(a => a !== area)
+        };
+      } else {
+        // Add area if not selected
+        return {
+          ...prev,
+          laserAreas: [...currentAreas, area]
+        };
+      }
+    });
+  };
+
+  const handlePackageSubmit = async (e) => {
+    e.preventDefault();
+    
+    try {
+      const packageData = {
+        ...packageForm,
+        installmentAmount: packageForm.totalPrice / packageForm.installmentCount,
+        createdAt: serverTimestamp() // Use server timestamp
+      };
+      
+      if (editingPackage) {
+        // Update existing package template
+        await updatePackageTemplate(editingPackage.id, packageData);
+      } else {
+        // Create new package template
+        await createPackageTemplate(packageData);
+      }
+      
+      // Reset form
+      setPackageForm({
+        name: '',
+        laserAreas: [],
+        totalSessions: 1,
+        totalPrice: 0,
+        installmentCount: 1,
+        active: true
+      });
+      
+      // Hide form and refresh package templates list
+      setShowPackageForm(false);
+      setEditingPackage(null);
+      loadPackageTemplates();
+    } catch (error) {
+      console.error('Error saving package template:', error);
+      alert('Paket şablonu kaydedilirken bir hata oluştu: ' + error.message);
+    }
+  };
+
+  const loadPackageTemplates = async () => {
+    try {
+      const templates = await getAllPackageTemplates();
+      setPackageTemplates(templates);
+    } catch (error) {
+      console.error('Error loading package templates:', error);
+    }
+  };
+
+  const editPackageTemplate = (template) => {
+    setPackageForm({
+      name: template.name,
+      laserAreas: template.laserAreas || [],
+      totalSessions: template.totalSessions,
+      totalPrice: template.totalPrice,
+      installmentCount: template.installmentCount,
+      active: template.active
+    });
+    setEditingPackage(template);
+    setShowPackageForm(true);
+  };
+
+  const deletePackageTemplate = async (id) => {
+    if (window.confirm('Bu paket şablonunu silmek istediğinizden emin misiniz?')) {
+      try {
+        await deletePackageTemplateById(id);
+        loadPackageTemplates();
+      } catch (error) {
+        console.error('Error deleting package template:', error);
+        alert('Paket şablonu silinirken bir hata oluştu: ' + error.message);
+      }
+    }
+  };
+
+  // Load package templates when component mounts
+  useEffect(() => {
+    loadPackageTemplates();
+    setLoading(false);
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-pulse text-rose-500">
+          <div className="w-8 h-8 border-4 border-rose-300 border-t-rose-500 rounded-full animate-spin mx-auto"></div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800">Paket Şablonları</h1>
+          <p className="text-gray-600 mt-1">Lazer epilasyon paket şablonlarınızı yönetin</p>
+        </div>
+        <div className="mt-4 sm:mt-0">
+          <button 
+            onClick={() => setCurrentPage('dashboard')}
+            className="px-4 py-2 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors duration-200"
+          >
+            Panele Dön
+          </button>
+        </div>
+      </div>
+      
+      {/* Package Templates Form */}
+      {showPackageForm && (
+        <div className="bg-white rounded-2xl shadow-sm p-6 mb-8 border border-gray-100">
+          <h2 className="text-xl font-bold text-gray-800 mb-6">
+            {editingPackage ? 'Paket Şablonu Düzenle' : 'Yeni Paket Şablonu'}
+          </h2>
+          <form onSubmit={handlePackageSubmit}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              <div>
+                <label className="block text-gray-700 text-sm font-medium mb-2" htmlFor="packageName">
+                  Paket Adı *
+                </label>
+                <input
+                  type="text"
+                  id="packageName"
+                  name="name"
+                  value={packageForm.name}
+                  onChange={handlePackageInputChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-300 focus:border-rose-400 outline-none transition"
+                  placeholder="Örn: 6 Seans Bacak Lazer"
+                  required
+                />
+              </div>
+              
+              <div>
+                <label className="block text-gray-700 text-sm font-medium mb-2" htmlFor="totalSessions">
+                  Toplam Seans
+                </label>
+                <input
+                  type="number"
+                  id="totalSessions"
+                  name="totalSessions"
+                  value={packageForm.totalSessions}
+                  onChange={handlePackageInputChange}
+                  min="1"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-300 focus:border-rose-400 outline-none transition"
+                  required
+                />
+              </div>
+              
+              <div>
+                <label className="block text-gray-700 text-sm font-medium mb-2" htmlFor="totalPrice">
+                  Toplam Fiyat (₺)
+                </label>
+                <input
+                  type="number"
+                  id="totalPrice"
+                  name="totalPrice"
+                  value={packageForm.totalPrice}
+                  onChange={handlePackageInputChange}
+                  min="0"
+                  step="0.01"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-300 focus:border-rose-400 outline-none transition"
+                  required
+                />
+              </div>
+              
+              <div>
+                <label className="block text-gray-700 text-sm font-medium mb-2" htmlFor="installmentCount">
+                  Taksit Sayısı
+                </label>
+                <input
+                  type="number"
+                  id="installmentCount"
+                  name="installmentCount"
+                  value={packageForm.installmentCount}
+                  onChange={handlePackageInputChange}
+                  min="1"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-300 focus:border-rose-400 outline-none transition"
+                  required
+                />
+              </div>
+            </div>
+            
+            <div className="mb-6">
+              <label className="block text-gray-700 text-sm font-medium mb-3">
+                Lazer Uygulanacak Bölgeleri Seçin:
+              </label>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                {[
+                  { value: 'yuz', label: 'Yüz' },
+                  { value: 'koltuk_alti', label: 'Koltuk Altı' },
+                  { value: 'kol', label: 'Kol' },
+                  { value: 'bacak', label: 'Bacak' },
+                  { value: 'bikini', label: 'Bikini' },
+                  { value: 'sirt', label: 'Sırt' },
+                  { value: 'gogus', label: 'Göğüs' }
+                ].map((area) => (
+                  <div key={area.value} className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id={`package_laser_${area.value}`}
+                      checked={(packageForm.laserAreas || []).includes(area.value)}
+                      onChange={() => handlePackageLaserAreaChange(area.value)}
+                      className="h-4 w-4 text-rose-600 focus:ring-rose-500 border-gray-300 rounded"
+                    />
+                    <label 
+                      htmlFor={`package_laser_${area.value}`} 
+                      className="ml-2 block text-sm text-gray-700"
+                    >
+                      {area.label}
+                    </label>
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            <div className="flex items-center mb-6">
+              <input
+                type="checkbox"
+                id="packageActive"
+                name="active"
+                checked={packageForm.active}
+                onChange={handlePackageInputChange}
+                className="h-4 w-4 text-rose-600 focus:ring-rose-500 border-gray-300 rounded"
+              />
+              <label htmlFor="packageActive" className="ml-2 block text-sm text-gray-700">
+                Aktif
+              </label>
+            </div>
+            
+            <div className="flex justify-end space-x-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowPackageForm(false);
+                  setEditingPackage(null);
+                  setPackageForm({
+                    name: '',
+                    laserAreas: [],
+                    totalSessions: 1,
+                    totalPrice: 0,
+                    installmentCount: 1,
+                    active: true
+                  });
+                }}
+                className="px-4 py-2 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors duration-200"
+              >
+                İptal
+              </button>
+              <button
+                type="submit"
+                className="px-4 py-2 bg-gradient-to-r from-rose-500 to-purple-600 hover:from-rose-600 hover:to-purple-700 text-white font-medium rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
+              >
+                {editingPackage ? 'Güncelle' : 'Oluştur'}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+      
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h2 className="text-lg font-bold text-gray-800">Paket Şablonları</h2>
+          <p className="text-gray-600 text-sm">Toplam {packageTemplates.length} paket şablonu</p>
+        </div>
+        <button 
+          onClick={() => {
+            setPackageForm({
+              name: '',
+              laserAreas: [],
+              totalSessions: 1,
+              totalPrice: 0,
+              installmentCount: 1,
+              active: true
+            });
+            setEditingPackage(null);
+            setShowPackageForm(true);
+          }}
+          className="px-4 py-2 bg-gradient-to-r from-rose-500 to-purple-600 hover:from-rose-600 hover:to-purple-700 text-white font-medium rounded-lg shadow-sm hover:shadow-md transition-all duration-200 flex items-center"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+          </svg>
+          Yeni Paket
+        </button>
+      </div>
+      
+      {/* Package Templates List */}
+      <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Paket Adı</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Seans</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fiyat</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Taksit</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Bölgeler</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Durum</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">İşlemler</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {packageTemplates.length > 0 ? (
+                packageTemplates.map(template => (
+                  <tr key={template.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900">{template.name}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">{template.totalSessions}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">{template.totalPrice} ₺</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">{template.installmentCount} x {(template.totalPrice / template.installmentCount).toFixed(2)} ₺</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">
+                        {template.laserAreas && template.laserAreas.length > 0 
+                          ? template.laserAreas.map(area => {
+                              const areaLabels = {
+                                'yuz': 'Yüz',
+                                'koltuk_alti': 'Koltuk Altı', 
+                                'kol': 'Kol',
+                                'bacak': 'Bacak',
+                                'bikini': 'Bikini',
+                                'sirt': 'Sırt',
+                                'gogus': 'Göğüs'
+                              };
+                              return areaLabels[area] || area;
+                            }).join(', ')
+                          : 'Belirtilmemiş'}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                        template.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                      }`}>
+                        {template.active ? 'Aktif' : 'Pasif'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <button
+                        onClick={() => editPackageTemplate(template)}
+                        className="text-indigo-600 hover:text-indigo-900 mr-3"
+                      >
+                        Düzenle
+                      </button>
+                      <button
+                        onClick={() => deletePackageTemplate(template.id)}
+                        className="text-red-600 hover:text-red-900"
+                      >
+                        Sil
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="7" className="px-6 py-12 text-center">
+                    <div className="flex flex-col items-center justify-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-gray-400 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                      </svg>
+                      <h3 className="text-lg font-medium text-gray-900 mb-1">Paket bulunamadı</h3>
+                      <p className="text-gray-500">Başlamak için yeni bir paket şablonu oluşturun.</p>
+                      <button
+                        onClick={() => {
+                          setPackageForm({
+                            name: '',
+                            laserAreas: [],
+                            totalSessions: 1,
+                            totalPrice: 0,
+                            installmentCount: 1,
+                            active: true
+                          });
+                          setEditingPackage(null);
+                          setShowPackageForm(true);
+                        }}
+                        className="mt-4 inline-flex items-center px-4 py-2 bg-gradient-to-r from-rose-500 to-purple-600 hover:from-rose-600 hover:to-purple-700 text-white font-medium rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
+                      >
+                        Paket Oluştur
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
