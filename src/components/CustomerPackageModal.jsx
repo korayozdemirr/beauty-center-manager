@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getAllPackageTemplates } from '../services/packageService';
-import { createCustomerPackage } from '../services/customerPackageService';
+import { createCustomerPackage, getCustomerPackages } from '../services/customerPackageService';
 import { createPaymentPlan } from '../services/paymentPlanService';
 
 const CustomerPackageModal = ({ 
@@ -15,20 +15,45 @@ const CustomerPackageModal = ({
   const [selectedTemplate, setSelectedTemplate] = useState(null);
   const [packageTemplates, setPackageTemplates] = useState([]);
   const [availableTemplates, setAvailableTemplates] = useState([]);
+  const [customerPackages, setCustomerPackages] = useState([]);
 
   useEffect(() => {
     if (isOpen && customer) {
       loadPackageTemplates();
+      loadCustomerPackages();
     }
   }, [isOpen, customer]);
 
   useEffect(() => {
     if (propPackageTemplates) {
       setPackageTemplates(propPackageTemplates);
-      // Filter for active templates only
-      setAvailableTemplates(propPackageTemplates.filter(template => template.active));
+      filterAvailableTemplates(propPackageTemplates, customerPackages);
     }
-  }, [propPackageTemplates]);
+  }, [propPackageTemplates, customerPackages]);
+
+  const loadCustomerPackages = async () => {
+    try {
+      if (customer?.id) {
+        const packages = await getCustomerPackages(customer.id);
+        setCustomerPackages(packages);
+      }
+    } catch (err) {
+      console.error('Error loading customer packages:', err);
+    }
+  };
+
+  const filterAvailableTemplates = (templates, customerPackages) => {
+    // Filter for active templates only
+    const activeTemplates = templates.filter(template => template.active);
+    
+    // Filter out templates that the customer already has
+    const availableTemplates = activeTemplates.filter(template => {
+      const existingPackage = customerPackages.find(pkg => pkg.packageTemplateId === template.id);
+      return !existingPackage;
+    });
+    
+    setAvailableTemplates(availableTemplates);
+  };
 
   const loadPackageTemplates = async () => {
     try {
@@ -191,7 +216,7 @@ const CustomerPackageModal = ({
               {!selectedTemplate ? (
                 <>
                   <h4 className="text-lg font-bold text-gray-800 mb-4">Paket Şablonu Seçin</h4>
-                  {availableTemplates.length > 0 ? (
+                  {(availableTemplates.length > 0 || (packageTemplates.filter(t => t.active).length > 0 && customerPackages.length > 0)) ? (
                     <div className="space-y-3">
                       {availableTemplates.map(template => (
                         <div 
@@ -223,13 +248,42 @@ const CustomerPackageModal = ({
                           </div>
                         </div>
                       ))}
+                      {/* Show templates that are already purchased */}
+                      {packageTemplates.filter(t => t.active).filter(template => {
+                        const existingPackage = customerPackages.find(pkg => pkg.packageTemplateId === template.id);
+                        return existingPackage;
+                      }).map(template => (
+                        <div 
+                          key={template.id}
+                          className="border rounded-lg p-4 bg-gray-100 opacity-75 cursor-not-allowed"
+                        >
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <h5 className="font-bold text-gray-600">{template.name} (Zaten Satın Alınmış)</h5>
+                              <div className="mt-2 text-sm text-gray-500">
+                                <div><span className="font-medium">Bölgeler:</span> {template.laserAreas && template.laserAreas.length > 0 
+                                  ? template.laserAreas.map(area => getAreaLabel(area)).join(', ') 
+                                  : 'Belirtilmemiş'}</div>
+                                <div><span className="font-medium">Seans:</span> {template.totalSessions}</div>
+                                <div><span className="font-medium">Fiyat:</span> {template.totalPrice} ₺</div>
+                                <div><span className="font-medium">Taksit:</span> {template.installmentCount} x {template.installmentAmount.toFixed(2)} ₺</div>
+                              </div>
+                            </div>
+                            <div className="flex items-center">
+                              <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">
+                                Zaten Satın Alınmış
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   ) : (
                     <div className="text-center py-8 text-gray-500">
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mx-auto text-gray-300 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                       </svg>
-                      <p>Henüz aktif paket şablonu yok</p>
+                      <p>{customerPackages.length > 0 ? 'Müşteriye atanmış başka paket yok' : 'Henüz aktif paket şablonu yok'}</p>
                     </div>
                   )}
                 </>

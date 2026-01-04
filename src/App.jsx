@@ -6,12 +6,14 @@ import { getAllCustomers, createCustomer, updateCustomer, deleteCustomer } from 
 import { getAllAppointments, createAppointment, updateAppointment, deleteAppointment } from './services/appointmentService';
 import { getAllPackageTemplates, createPackageTemplate, updatePackageTemplate, deletePackageTemplateById } from './services/packageService';
 import { getCustomerPackages } from './services/customerPackageService';
-import { getPaymentPlans } from './services/paymentPlanService';
+import { getPaymentPlans, updatePaymentPlan, getPaymentPlan } from './services/paymentPlanService';
 import AppointmentForm from './components/AppointmentForm';
 import CustomerForm from './components/CustomerForm';
 import AppointmentList from './components/AppointmentList';
 import Header from './components/Header';
 import CustomerPackageModal from './components/CustomerPackageModal';
+import PaymentTrackingModal from './components/PaymentTrackingModal';
+import WhatsAppMessaging from './components/WhatsAppMessaging';
 import './App.css';
 
 function App() {
@@ -23,6 +25,11 @@ function App() {
   const [showPackageModal, setShowPackageModal] = useState(false);
   const [selectedCustomerForPackage, setSelectedCustomerForPackage] = useState(null);
   const [packageTemplates, setPackageTemplates] = useState([]);
+  const [customers, setCustomers] = useState([]);
+  const [filteredCustomers, setFilteredCustomers] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showPaymentTrackingModal, setShowPaymentTrackingModal] = useState(false);
+  const [selectedPaymentPlan, setSelectedPaymentPlan] = useState(null);
 
 
   // Check auth state on app load
@@ -54,6 +61,27 @@ function App() {
   const handlePackageSold = async () => {
     // Reload all data to ensure consistency
     loadPackageTemplates();
+  };
+
+  const handlePaymentUpdate = async (updatedPaymentPlan) => {
+    try {
+      // Update the payment plan in Firestore
+      await updatePaymentPlan(updatedPaymentPlan.id, {
+        installments: updatedPaymentPlan.installments,
+        paidInstallments: updatedPaymentPlan.paidInstallments,
+        status: updatedPaymentPlan.status
+      });
+      
+      // Reload customer packages to update the UI
+      const packages = await getCustomerPackages(updatedPaymentPlan.customerId);
+      // Note: This assumes we have a way to update the global customer packages state
+      // which might require additional logic
+      
+      alert('Ödeme başarıyla kaydedildi!');
+    } catch (error) {
+      console.error('Error updating payment:', error);
+      alert('Ödeme kaydedilirken bir hata oluştu: ' + error.message);
+    }
   };
     
   // Update document title based on current page
@@ -96,6 +124,13 @@ function App() {
           setSelectedCustomerForPackage={setSelectedCustomerForPackage}
           packageTemplates={packageTemplates}
           handlePackageSold={handlePackageSold}
+          showPaymentTrackingModal={showPaymentTrackingModal}
+          setShowPaymentTrackingModal={setShowPaymentTrackingModal}
+          selectedPaymentPlan={selectedPaymentPlan}
+          setSelectedPaymentPlan={setSelectedPaymentPlan}
+          customers={filteredCustomers}
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
         />;
       case 'appointments':
         return <Appointments setCurrentPage={setCurrentPage} currentUser={currentUser} selectedCustomer={selectedCustomer} />;
@@ -105,6 +140,8 @@ function App() {
         return <Settings setCurrentPage={setCurrentPage} currentUser={currentUser} />;
       case 'packages':
         return <Packages setCurrentPage={setCurrentPage} currentUser={currentUser} />;
+      case 'whatsapp':
+        return <WhatsAppMessaging customers={customers} onBack={() => setCurrentPage('customers')} />;
       case 'login':
       default:
         return <Login setCurrentPage={setCurrentPage} />;
@@ -163,6 +200,16 @@ function App() {
             packageTemplates={packageTemplates}
           />
         )}
+        <PaymentTrackingModal
+          customer={selectedPaymentPlan || {}}
+          paymentPlan={selectedPaymentPlan || {}}
+          isOpen={showPaymentTrackingModal}
+          onClose={() => {
+            setShowPaymentTrackingModal(false);
+            setSelectedPaymentPlan(null);
+          }}
+          onPaymentMade={handlePaymentUpdate}
+        />
       </main>
     </div>
   );
@@ -715,10 +762,7 @@ const Dashboard = ({ setCurrentPage, currentUser }) => {
   );
 };
 
-const Customers = ({ setCurrentPage, currentUser, setSelectedCustomer, showPackageModal, setShowPackageModal, selectedCustomerForPackage, setSelectedCustomerForPackage, packageTemplates, handlePackageSold }) => {
-  const [customers, setCustomers] = useState([]);
-  const [filteredCustomers, setFilteredCustomers] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
+const Customers = ({ setCurrentPage, currentUser, setSelectedCustomer, showPackageModal, setShowPackageModal, selectedCustomerForPackage, setSelectedCustomerForPackage, packageTemplates, handlePackageSold, showPaymentTrackingModal, setShowPaymentTrackingModal, selectedPaymentPlan, setSelectedPaymentPlan, customers, searchTerm, setSearchTerm }) => {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState(null);
@@ -865,6 +909,71 @@ const Customers = ({ setCurrentPage, currentUser, setSelectedCustomer, showPacka
   const showPackageSalesModal = (customer) => {
     setSelectedCustomerForPackage(customer);
     setShowPackageModal(true);
+  };
+
+  const showCustomerPaymentTracking = async (customer) => {
+    try {
+      // Get customer packages directly from the service
+      const customerPackagesList = await getCustomerPackages(customer.id);
+      
+      // Find the first customer package that has a payment plan
+      const customerPackage = customerPackagesList.find(pkg => pkg.paymentPlanId);
+      
+      if (customerPackage && customerPackage.paymentPlanId) {
+        // Get the actual payment plan data
+        const paymentPlan = await getPaymentPlan(customerPackage.paymentPlanId);
+        
+        if (paymentPlan) {
+          // Combine customer info with payment plan data
+          const fullPaymentPlanData = {
+            ...paymentPlan,
+            customerName: customer.name,
+            customerPhone: customer.phone,
+            customerId: customer.id,
+            // Include the customer package data as well
+            customerPackage: customerPackage
+          };
+          setSelectedPaymentPlan(fullPaymentPlanData);
+          setShowPaymentTrackingModal(true);
+        } else {
+          alert('Ödeme planı verisi bulunamadı.');
+        }
+      } else {
+        alert('Bu müşteriye ait ödeme planı içeren paket bulunamadı.');
+      }
+    } catch (error) {
+      console.error('Error fetching customer packages or payment plan:', error);
+      alert('Müşteri paketleri veya ödeme planı verisi alınırken hata oluştu: ' + error.message);
+    }
+  };
+
+  const handlePaymentUpdate = async (updatedPaymentPlan) => {
+    try {
+      // Update the payment plan in Firestore
+      await updatePaymentPlan(updatedPaymentPlan.id, {
+        installments: updatedPaymentPlan.installments,
+        paidInstallments: updatedPaymentPlan.paidInstallments,
+        status: updatedPaymentPlan.status
+      });
+      
+      // Reload customer packages to update the UI
+      const packages = await getCustomerPackages(updatedPaymentPlan.customerId);
+      setCustomerPackages(prev => ({
+        ...prev,
+        [updatedPaymentPlan.customerId]: packages
+      }));
+      
+      // Update the selected payment plan
+      setSelectedPaymentPlan(prev => ({
+        ...prev,
+        ...updatedPaymentPlan
+      }));
+      
+      alert('Ödeme başarıyla kaydedildi!');
+    } catch (error) {
+      console.error('Error updating payment:', error);
+      alert('Ödeme kaydedilirken bir hata oluştu: ' + error.message);
+    }
   };
 
 
@@ -1046,6 +1155,12 @@ const Customers = ({ setCurrentPage, currentUser, setSelectedCustomer, showPacka
                       className="text-purple-600 hover:text-purple-900 mr-3"
                     >
                       Paket
+                    </button>
+                    <button 
+                      onClick={() => showCustomerPaymentTracking(customer)}
+                      className="text-blue-600 hover:text-blue-900 mr-3"
+                    >
+                      Ödeme Takibi
                     </button>
                     <button 
                       onClick={() => handleEdit(customer)}
