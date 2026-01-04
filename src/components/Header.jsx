@@ -58,16 +58,6 @@ const Header = ({ currentPage, setCurrentPage, currentUser, handleLogout, isMobi
                 Paketler
               </button>
               <button
-                onClick={() => {setCurrentPage('whatsapp'); setSelectedCustomer(null);}}
-                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
-                  currentPage === 'whatsapp'
-                    ? 'bg-rose-100 text-rose-700'
-                    : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
-                }`}
-              >
-                WhatsApp
-              </button>
-              <button
                 onClick={() => {setCurrentPage('settings'); setSelectedCustomer(null);}}
                 className={`px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
                   currentPage === 'settings'
@@ -184,20 +174,6 @@ const Header = ({ currentPage, setCurrentPage, currentUser, handleLogout, isMobi
               }`}
             >
               Paketler
-            </button>
-            <button
-              onClick={() => {
-                setCurrentPage('whatsapp');
-                setIsMobileMenuOpen(false);
-                setSelectedCustomer(null);
-              }}
-              className={`block px-4 py-2 text-base font-medium w-full text-left rounded-md ${
-                currentPage === 'whatsapp'
-                  ? 'bg-rose-100 text-rose-700'
-                  : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
-              }`}
-            >
-              WhatsApp
             </button>
             <button
               onClick={() => {

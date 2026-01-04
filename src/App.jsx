@@ -13,7 +13,6 @@ import AppointmentList from './components/AppointmentList';
 import Header from './components/Header';
 import CustomerPackageModal from './components/CustomerPackageModal';
 import PaymentTrackingModal from './components/PaymentTrackingModal';
-import WhatsAppMessaging from './components/WhatsAppMessaging';
 import './App.css';
 
 function App() {
@@ -25,9 +24,6 @@ function App() {
   const [showPackageModal, setShowPackageModal] = useState(false);
   const [selectedCustomerForPackage, setSelectedCustomerForPackage] = useState(null);
   const [packageTemplates, setPackageTemplates] = useState([]);
-  const [customers, setCustomers] = useState([]);
-  const [filteredCustomers, setFilteredCustomers] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
   const [showPaymentTrackingModal, setShowPaymentTrackingModal] = useState(false);
   const [selectedPaymentPlan, setSelectedPaymentPlan] = useState(null);
 
@@ -128,9 +124,6 @@ function App() {
           setShowPaymentTrackingModal={setShowPaymentTrackingModal}
           selectedPaymentPlan={selectedPaymentPlan}
           setSelectedPaymentPlan={setSelectedPaymentPlan}
-          customers={filteredCustomers}
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
         />;
       case 'appointments':
         return <Appointments setCurrentPage={setCurrentPage} currentUser={currentUser} selectedCustomer={selectedCustomer} />;
@@ -140,8 +133,6 @@ function App() {
         return <Settings setCurrentPage={setCurrentPage} currentUser={currentUser} />;
       case 'packages':
         return <Packages setCurrentPage={setCurrentPage} currentUser={currentUser} />;
-      case 'whatsapp':
-        return <WhatsAppMessaging customers={customers} onBack={() => setCurrentPage('customers')} />;
       case 'login':
       default:
         return <Login setCurrentPage={setCurrentPage} />;
@@ -762,10 +753,31 @@ const Dashboard = ({ setCurrentPage, currentUser }) => {
   );
 };
 
-const Customers = ({ setCurrentPage, currentUser, setSelectedCustomer, showPackageModal, setShowPackageModal, selectedCustomerForPackage, setSelectedCustomerForPackage, packageTemplates, handlePackageSold, showPaymentTrackingModal, setShowPaymentTrackingModal, selectedPaymentPlan, setSelectedPaymentPlan, customers, searchTerm, setSearchTerm }) => {
+const Customers = ({ setCurrentPage, currentUser, setSelectedCustomer, showPackageModal, setShowPackageModal, selectedCustomerForPackage, setSelectedCustomerForPackage, packageTemplates, handlePackageSold, showPaymentTrackingModal, setShowPaymentTrackingModal, selectedPaymentPlan, setSelectedPaymentPlan }) => {
+  const [customers, setCustomers] = useState([]);
+  const [filteredCustomers, setFilteredCustomers] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
+  
+  // Filter customers based on search term
+  useEffect(() => {
+    if (searchTerm.trim() === '') {
+      setFilteredCustomers(customers);
+    } else {
+      const term = searchTerm.toLowerCase();
+      const filtered = customers.filter(customer => 
+        customer.name.toLowerCase().includes(term) ||
+        customer.email.toLowerCase().includes(term) ||
+        (customer.phone && customer.phone.includes(term))
+      );
+      setFilteredCustomers(filtered);
+    }
+  }, [searchTerm, customers]);
+  
   const [showForm, setShowForm] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState(null);
+  
+
   const [showAppointmentsModal, setShowAppointmentsModal] = useState(false);
   const [selectedCustomerAppointments, setSelectedCustomerAppointments] = useState([]);
   const [selectedCustomerForAppointments, setSelectedCustomerForAppointments] = useState(null);
@@ -781,18 +793,13 @@ const Customers = ({ setCurrentPage, currentUser, setSelectedCustomer, showPacka
   useEffect(() => {
     loadCustomers();
   }, []);
-
+  
   const loadCustomers = async () => {
     try {
       setLoading(true);
-      const [customerList, templateList] = await Promise.all([
-        getAllCustomers(),
-        getAllPackageTemplates()
-      ]);
-      
+      const customerList = await getAllCustomers();
       setCustomers(customerList);
       setFilteredCustomers(customerList);
-      setPackageTemplates(templateList);
       
       // Load customer packages for each customer
       const packagesByCustomer = {};
@@ -808,21 +815,6 @@ const Customers = ({ setCurrentPage, currentUser, setSelectedCustomer, showPacka
       setLoading(false);
     }
   };
-
-  // Filter customers based on search term
-  useEffect(() => {
-    if (searchTerm.trim() === '') {
-      setFilteredCustomers(customers);
-    } else {
-      const term = searchTerm.toLowerCase();
-      const filtered = customers.filter(customer => 
-        customer.name.toLowerCase().includes(term) ||
-        customer.email.toLowerCase().includes(term) ||
-        (customer.phone && customer.phone.includes(term))
-      );
-      setFilteredCustomers(filtered);
-    }
-  }, [searchTerm, customers]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -1225,7 +1217,7 @@ const Appointments = ({ setCurrentPage, currentUser, selectedCustomer }) => {
 
   useEffect(() => {
     loadAppointments();
-    loadCustomers();
+    loadAppointmentCustomers();
   }, []);
 
   const loadAppointments = async () => {
@@ -1240,7 +1232,7 @@ const Appointments = ({ setCurrentPage, currentUser, selectedCustomer }) => {
     }
   };
 
-  const loadCustomers = async () => {
+  const loadAppointmentCustomers = async () => {
     try {
       const customerList = await getAllCustomers();
       setCustomers(customerList);
@@ -1901,7 +1893,7 @@ const AppointmentsList = ({ setCurrentPage, currentUser }) => {
 
   useEffect(() => {
     loadAppointments();
-    loadCustomers();
+    loadAppointmentCustomers();
   }, [filter]);
 
   const loadAppointments = async () => {
@@ -1916,7 +1908,7 @@ const AppointmentsList = ({ setCurrentPage, currentUser }) => {
     }
   };
 
-  const loadCustomers = async () => {
+  const loadAppointmentCustomers = async () => {
     try {
       const customerList = await getAllCustomers();
       setCustomers(customerList);
